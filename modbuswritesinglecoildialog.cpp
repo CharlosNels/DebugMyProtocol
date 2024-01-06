@@ -90,27 +90,24 @@ void ModbusWriteSingleCoilDialog::generatePack()
     case MODBUS_RTU:
     {
         m_write_pack = Modbus_RTU::masterFrame2Pack(frame_info);
-        ui->label_request->setText(m_write_pack.toHex(' ').toUpper());
+
         break;
     }
     case MODBUS_ASCII:
     {
-
+        m_write_pack = Modbus_ASCII::masterFrame2Pack(frame_info);
         break;
     }
     case MODBUS_TCP:
-    {
-
-        break;
-    }
     case MODBUS_UDP:
     {
-
+        m_write_pack = Modbus_TCP::masterFrame2Pack(frame_info);
         break;
     }
     default:
-        break;
+        return;
     }
+    ui->label_request->setText(m_write_pack.toHex(' ').toUpper());
 }
 
 

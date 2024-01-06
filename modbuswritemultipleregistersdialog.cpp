@@ -514,17 +514,13 @@ void ModbusWriteMultipleRegistersDialog::on_button_send_clicked()
     }
     case MODBUS_ASCII:
     {
-
+        write_pack = Modbus_ASCII::masterFrame2Pack(frame_info);
         break;
     }
     case MODBUS_TCP:
-    {
-
-        break;
-    }
     case MODBUS_UDP:
     {
-
+        write_pack = Modbus_TCP::masterFrame2Pack(frame_info);
         break;
     }
     }

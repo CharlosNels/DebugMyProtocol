@@ -15,8 +15,9 @@ class MyUdpSocket : public QIODevice
     typedef boost::shared_ptr<boost::asio::ip::udp::resolver> acceptor_ptr;
 
 public:
-    explicit MyUdpSocket(QHostAddress host, quint16 port, quint64 read_buffer_size = 1024 * 1024, QObject *parent = nullptr);
+    explicit MyUdpSocket(quint64 read_buffer_size = 1024 * 1024, QObject *parent = nullptr);
     void setReadBufferSize(quint64 buf_size);
+    bool connectTo(QHostAddress host, quint16 port);
 
 signals:
     void socketErrorOccurred(const std::error_code &ec);

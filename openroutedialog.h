@@ -5,11 +5,13 @@
 #include <QSerialPort>
 #include <boost/shared_ptr.hpp>
 #include <QList>
-#include "mytcpsocket.h"
 
 namespace Ui {
 class OpenRouteDialog;
 }
+
+class MyTcpSocket;
+class MyUdpSocket;
 
 enum Protocols{
     MODBUS_RTU,
@@ -52,6 +54,10 @@ private slots:
     void on_box_tcp_server_protocol_currentTextChanged(const QString &arg1);
 
     void on_box_tcp_client_protocol_currentTextChanged(const QString &arg1);
+
+    void on_box_udp_protocol_currentTextChanged(const QString &arg1);
+
+    void on_button_connect_udp_clicked();
 
 private:
     Ui::OpenRouteDialog *ui;

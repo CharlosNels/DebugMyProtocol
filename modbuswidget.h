@@ -14,6 +14,7 @@ struct ModbusRegReadDefinitions;
 class QTimer;
 class RegsViewWidget;
 class DisplayCommunication;
+class ErrorCounterDialog;
 
 namespace Ui {
 class ModbusWidget;
@@ -77,6 +78,8 @@ private:
     ModbusWriteSingleRegisterDialog *m_function06_dialog;
     ModbusWriteMultipleCoilsDialog *m_function15_dialog;
     ModbusWriteMultipleRegistersDialog *m_function16_dialog;
+    quint16 m_trans_id;
+    ErrorCounterDialog *m_error_counter_dialog;
 
 public:
     static const QMap<ModbusErrorCode, QString> modbus_error_code_map;

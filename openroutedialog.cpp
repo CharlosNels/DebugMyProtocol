@@ -3,8 +3,10 @@
 #include <QHostAddress>
 #include <QNetworkInterface>
 #include <QSerialPortInfo>
-#include "floatbox.h"
 #include <QMainWindow>
+#include "floatbox.h"
+#include "mytcpsocket.h"
+#include "myudpsocket.h"
 
 const QMap<QString, QSerialPort::BaudRate> OpenRouteDialog::baud_map = {
     {"1200", QSerialPort::Baud1200},
@@ -91,6 +93,8 @@ OpenRouteDialog::OpenRouteDialog(QWidget *parent)
 
 
     ui->box_tcp_client_protocol->addItems(protocol_map[tr("TCP-Client")]);
+
+    ui->box_udp_protocol->addItems(protocol_map[("UDP")]);
 }
 
 OpenRouteDialog::~OpenRouteDialog()
@@ -233,6 +237,37 @@ void OpenRouteDialog::on_box_tcp_client_protocol_currentTextChanged(const QStrin
     {
         ui->box_identity_tcp_client->hide();
         ui->label_identity_tcp_client->hide();
+    }
+}
+
+
+void OpenRouteDialog::on_box_udp_protocol_currentTextChanged(const QString &arg1)
+{
+    if(arg1.contains("Modbus"))
+    {
+        ui->box_identity_udp->show();
+        ui->label_identity_udp->show();
+    }
+    else
+    {
+        ui->box_identity_udp->hide();
+        ui->label_identity_udp->hide();
+    }
+}
+
+
+void OpenRouteDialog::on_button_connect_udp_clicked()
+{
+    MyUdpSocket *udp_socket = new MyUdpSocket();
+    connect(udp_socket, &MyUdpSocket::socketErrorOccurred, this, &OpenRouteDialog::socketErrorOccurred);
+    if(udp_socket->connectTo(QHostAddress(ui->edit_udp_remote_server_addr->text()), ui->box_udp_remote_server_port->value()))
+    {
+        emit createdRoute(udp_socket, QString("%1:%2 - %3").arg(ui->edit_udp_remote_server_addr->text()).arg(ui->box_udp_remote_server_port->value()).arg(ui->box_udp_protocol->currentText()), protocol_enum_map[ui->box_udp_protocol->currentText()], ui->box_identity_udp->currentText() == tr("Master"));
+        hide();
+    }
+    else
+    {
+        udp_socket->deleteLater();
     }
 }
 

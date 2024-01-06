@@ -3,7 +3,7 @@
 #include <QIODevice>
 #include <QObject>
 #include <boost/asio.hpp>
-#include <boost/thread.hpp>
+#include <thread>
 #include <mutex>
 #include <QVariant>
 #include <QByteArray>
@@ -77,14 +77,11 @@ private:
     private:
         my_tcp_context(){}
         static boost::asio::io_context *tcp_context;
-        static boost::thread *tcp_thread;
+        static std::thread *tcp_thread;
         static std::mutex tcp_mutex;
     public:
         static boost::asio::io_context *getTcpContext();
     };
-    static boost::asio::io_context *tcp_context;
-    static boost::thread *tcp_thread;
-    static std::mutex tcp_mutex;
 };
 
 #endif // MYTCPSOCKET_H

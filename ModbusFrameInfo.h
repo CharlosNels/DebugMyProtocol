@@ -1,6 +1,8 @@
 #ifndef MODBUSFRAMEINFO_H
 #define MODBUSFRAMEINFO_H
 
+#include <QtTypes>
+
 enum ModbusFunctions{
     ModbusReadCoils = 0x01,
     ModbusReadDescreteInputs = 0x02,
@@ -33,10 +35,15 @@ enum ModbusErrorCode{
 };
 
 struct ModbusFrameInfo{
-    int id;
-    int function;
-    int reg_addr;
-    int quantity;
+    //tcp,udp transaction identifier
+    quint16 trans_id{};
+    //master or slave ID
+    int id{};
+    //function code
+    int function{};
+    //register or coil address
+    int reg_addr{};
+    int quantity{};
     unsigned short reg_values[2000]{0};
 };
 

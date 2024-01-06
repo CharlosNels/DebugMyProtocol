@@ -42,7 +42,7 @@ void MainWindow::routeCreated(QIODevice *com, QString name, int protocol, bool i
         protocol == MODBUS_UDP)
     {
         ModbusWidget *modbus_widget = new ModbusWidget(is_master, com, protocol);
-        modbus_widget->setWindowTitle(name);
+        modbus_widget->setWindowTitle(name + QString(" - %1" ).arg(is_master ? tr("Master") : tr("Slave")));
         ui->mdi_area_modbus->addSubWindow(modbus_widget);
         modbus_widget->show();
     }

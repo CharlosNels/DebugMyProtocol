@@ -1,16 +1,15 @@
 #include "myudpsocket.h"
 #include "mytcpsocket.h"
+#include <boost/make_shared.hpp>
 
 using namespace boost::asio;
 
-MyUdpSocket::MyUdpSocket(QHostAddress host, quint16 port, quint64 read_buffer_size, QObject *parent)
+MyUdpSocket::MyUdpSocket(quint64 read_buffer_size, QObject *parent)
     : QIODevice{parent}, m_read_buffer_size(read_buffer_size)
 {
     m_asio_socket = boost::make_shared<ip::udp::socket>(*MyTcpSocket::my_tcp_context::getTcpContext());
     m_asio_read_buf = nullptr;
     setReadBufferSize(read_buffer_size);
-    m_remote_ep = ip::udp::endpoint(ip::address::from_string(host.toString().toStdString()),port);
-    m_asio_socket->async_receive_from(buffer(m_asio_read_buf,read_buffer_size), m_remote_ep, std::bind(&MyUdpSocket::asyncReceiveCallback,this,std::placeholders::_1,std::placeholders::_2));
 }
 
 void MyUdpSocket::setReadBufferSize(quint64 buf_size)
@@ -18,6 +17,20 @@ void MyUdpSocket::setReadBufferSize(quint64 buf_size)
     m_read_buffer_size = buf_size;
     delete []m_asio_read_buf;
     m_asio_read_buf = new char[buf_size];
+}
+
+bool MyUdpSocket::connectTo(QHostAddress host, quint16 port)
+{
+    try{
+        m_remote_ep = ip::udp::endpoint(ip::address::from_string(host.toString().toStdString()),port);
+        m_asio_socket->async_receive_from(buffer(m_asio_read_buf,m_read_buffer_size), m_remote_ep, std::bind(&MyUdpSocket::asyncReceiveCallback,this,std::placeholders::_1,std::placeholders::_2));
+    }
+    catch(boost::wrapexcept<boost::system::system_error> error)
+    {
+        emit socketErrorOccurred(error.code());
+        return false;
+    }
+    return true;
 }
 
 

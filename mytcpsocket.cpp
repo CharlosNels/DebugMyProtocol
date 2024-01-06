@@ -4,11 +4,12 @@
 #include <QHostAddress>
 #include <QMap>
 #include <QDebug>
+#include <boost/make_shared.hpp>
 
 using namespace boost::asio;
 
 io_context *MyTcpSocket::my_tcp_context::tcp_context = nullptr;
-boost::thread *MyTcpSocket::my_tcp_context::tcp_thread = nullptr;
+std::thread *MyTcpSocket::my_tcp_context::tcp_thread = nullptr;
 std::mutex MyTcpSocket::my_tcp_context::tcp_mutex;
 
 MyTcpSocket::MyTcpSocket(socket_ptr sock_ptr, quint64 read_buffer_size) : QIODevice(nullptr)
@@ -310,7 +311,7 @@ boost::asio::io_context *MyTcpSocket::my_tcp_context::getTcpContext()
     {
         tcp_mutex.lock();
         tcp_context = new io_context();
-        tcp_thread = new boost::thread([](){
+        tcp_thread = new std::thread([](){
             io_context::work worker(*tcp_context);
             tcp_context->run();
         });

@@ -114,12 +114,12 @@ void AddRegDialog::generateRequest()
     }
     case MODBUS_ASCII:
     {
-
+        m_request_bytes = Modbus_ASCII::masterFrame2Pack(frame_info);
         break;
     }
     case MODBUS_TCP:
     {
-
+        m_request_bytes = Modbus_TCP::masterFrame2Pack(frame_info);
         break;
     }
     default:

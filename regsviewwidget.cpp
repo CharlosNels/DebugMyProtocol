@@ -6,7 +6,7 @@
 #include <QCursor>
 #include <QInputDialog>
 #include <QtEndian>
-#include <float.h>
+#include <QClipboard>
 #include "ModbusFrameInfo.h"
 #include "utils.h"
 
@@ -16,6 +16,8 @@ RegsViewWidget::RegsViewWidget(ModbusRegReadDefinitions *reg_def, QWidget *paren
     , ui(new Ui::RegsViewWidget), m_reg_defines(reg_def), m_send_count(0), m_error_count(0)
 {
     ui->setupUi(this);
+    QIcon nullIcon;
+    setWindowIcon(nullIcon);
     m_table_model = new QStandardItemModel(ui->regs_table_view);
     m_table_model->setHorizontalHeaderLabels({tr("Register Address"),tr("Alias"),tr("Value")});
     m_table_model->setRowCount(reg_def->quantity);
@@ -328,12 +330,25 @@ void RegsViewWidget::formatActionTriggered()
 
 void RegsViewWidget::copyActionTriggered()
 {
-
+    QModelIndexList selections = ui->regs_table_view->selectionModel()->selectedIndexes();
+    QString clip_text;
+    for(int i = 0;i < selections.size(); ++i)
+    {
+        QModelIndex index = selections[i];
+        if(index.isValid())
+        {
+            clip_text.append(m_table_model->item(index.row(), 2)->text() + '\n');
+        }
+    }
+    if(clip_text.size() > 0)
+    {
+        QApplication::clipboard()->setText(clip_text);
+    }
 }
 
 void RegsViewWidget::selectAllActionTriggered()
 {
-
+    ui->regs_table_view->selectColumn(2);
 }
 
 void RegsViewWidget::updateRegisterValues()

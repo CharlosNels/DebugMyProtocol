@@ -64,3 +64,20 @@ void setBit(quint8 &data, int bit_index, quint16 value)
         data &= ~(1 << bit_index);
     }
 }
+
+quint8 LRC(QByteArray data, int len)
+{
+    quint32 sum = 0;
+    quint8 *buf = (quint8*)data.data();
+    for(int i = 0;i < len; ++i)
+    {
+        sum += buf[i];
+    }
+    return 256 - (sum % 256);
+}
+
+void setModbusPacketTransID(QByteArray &pack, quint16 trans_id)
+{
+    pack[0] = quint8(trans_id >> 8 & 0xFF);
+    pack[1] = quint8(trans_id & 0xFF);
+}

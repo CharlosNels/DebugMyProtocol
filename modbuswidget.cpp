@@ -12,6 +12,7 @@
 #include <QMessageBox>
 #include <QMdiArea>
 #include <QMdiSubWindow>
+#include <QIcon>
 #include "modbus_ascii.h"
 #include "modbus_rtu.h"
 #include "modbus_tcp.h"
@@ -21,10 +22,12 @@
 #include "regsviewwidget.h"
 #include "openroutedialog.h"
 #include "utils.h"
+#include "errorcounterdialog.h"
 
 #define PRINT_TRAFFIC 0
 
 const QMap<ModbusErrorCode, QString> ModbusWidget::modbus_error_code_map = {
+    {ModbusErrorCode_Timeout, tr("Timeout Error")},
     {ModbusErrorCode_Illegal_Function, tr("Illegal Function")},
     {ModbusErrorCode_Illegal_Data_Address, tr("Illegal Data Address")},
     {ModbusErrorCode_Illegal_Data_Value, tr("Illegal Data Value")},
@@ -37,6 +40,7 @@ const QMap<ModbusErrorCode, QString> ModbusWidget::modbus_error_code_map = {
     {ModbusErrorCode_Gateway_Target_Device_Failed_To_Respond, tr("Gateway Target Device Failed To Respond")}
 };
 const QMap<ModbusErrorCode, QString> ModbusWidget::modbus_error_code_comment_map = {
+    {ModbusErrorCode_Timeout, tr("The slave did not reply within the specified time.")},
     {ModbusErrorCode_Illegal_Function, tr("The function code received in the request is not an authorized action for the slave. The slave may be in the wrong state to process a specific request.")},
     {ModbusErrorCode_Illegal_Data_Address, tr("The data address received by the slave is not an authorized address for the slave.")},
     {ModbusErrorCode_Illegal_Data_Value, tr("The value in the request data field is not an authorized value for the slave.")},
@@ -53,6 +57,7 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com, int protocol, QWidget
     : ProtocolWidget(com, protocol, parent)
     , ui(new Ui::ModbusWidget), m_is_master(is_master), m_function05_dialog(nullptr)
     , m_function06_dialog(nullptr), m_function15_dialog(nullptr), m_function16_dialog(nullptr)
+    , m_trans_id(0)
 {
     ui->setupUi(this);
 
@@ -70,10 +75,11 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com, int protocol, QWidget
     connect(modify_reg_action, &QAction::triggered, this, &ModbusWidget::actionModifyRegDefTriggered);
     QAction *show_frame_action = tool_menu->addAction(tr("Display Communication"));
     connect(show_frame_action, &QAction::triggered, this, &ModbusWidget::actionDisplayTrafficTriggered);
-    QAction *error_counter_action = tool_menu->addAction(tr("Error Counter"));
-    connect(error_counter_action, &QAction::triggered, this, &ModbusWidget::actionErrorCounterTriggered);
+
     if(m_is_master)
     {
+        QAction *error_counter_action = tool_menu->addAction(tr("Error Counter"));
+        connect(error_counter_action, &QAction::triggered, this, &ModbusWidget::actionErrorCounterTriggered);
         QMenu *setting_menu = menu_bar->addMenu(tr("Settings"));
         QAction *timeout_setting_action = setting_menu->addAction(tr("Timeout Setting"));
         connect(timeout_setting_action, &QAction::triggered, this, &ModbusWidget::actionSetRecvTimeoutTriggered);
@@ -86,10 +92,13 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com, int protocol, QWidget
         connect(function_15_action, &QAction::triggered, this, &ModbusWidget::actionFunction15Triggered);
         QAction *function_16_action = functions_menu->addAction(tr("16:Write Registers"));
         connect(function_16_action, &QAction::triggered, this, &ModbusWidget::actionFunction16Triggered);
+
+        m_error_counter_dialog = new ErrorCounterDialog(this);
+        m_error_counter_dialog->hide();
     }
     else
     {
-
+        m_error_counter_dialog = nullptr;
     }
 
 
@@ -121,6 +130,7 @@ ModbusWidget::~ModbusWidget()
 {
     delete ui;
 }
+
 void ModbusWidget::writeFunctionTriggered(QByteArray pack)
 {
     m_manual_list.append(pack);
@@ -138,17 +148,13 @@ void ModbusWidget::writeFrameTriggered(const ModbusFrameInfo &frame_info)
     }
     case MODBUS_ASCII:
     {
-
+        write_pack = Modbus_ASCII::masterFrame2Pack(frame_info);
         break;
     }
     case MODBUS_TCP:
-    {
-
-        break;
-    }
     case MODBUS_UDP:
     {
-
+        write_pack = Modbus_TCP::masterFrame2Pack(frame_info);
         break;
     }
     }
@@ -266,7 +272,10 @@ void ModbusWidget::actionDisplayTrafficTriggered()
 
 void ModbusWidget::actionErrorCounterTriggered()
 {
-
+    if(m_error_counter_dialog)
+    {
+        m_error_counter_dialog->show();
+    }
 }
 
 void ModbusWidget::regDefinitionsCreated(ModbusRegReadDefinitions *reg_defines)
@@ -316,6 +325,11 @@ void ModbusWidget::sendTimerTimeoutSlot()
 #if PRINT_TRAFFIC
         qDebug()<<"Master Send: "<<m_master_last_send_pack.toHex(' ').toUpper();
 #endif
+        if(m_protocol == MODBUS_TCP || m_protocol == MODBUS_UDP)
+        {
+            setModbusPacketTransID(m_master_last_send_pack, m_trans_id);
+            ++m_trans_id;
+        }
         m_com->write(m_master_last_send_pack);
         connect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
         if(m_traffic_displayer->isVisible())
@@ -331,6 +345,11 @@ void ModbusWidget::sendTimerTimeoutSlot()
 #if PRINT_TRAFFIC
         qDebug()<<"Master Send: "<<m_master_last_send_pack.toHex(' ').toUpper();
 #endif
+        if(m_protocol == MODBUS_TCP || m_protocol == MODBUS_UDP)
+        {
+            setModbusPacketTransID(m_master_last_send_pack, m_trans_id);
+            ++m_trans_id;
+        }
         m_com->write(m_master_last_send_pack);
         connect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
         if(m_traffic_displayer->isVisible())
@@ -364,11 +383,15 @@ void ModbusWidget::recvTimerTimeoutSlot()
         m_master_last_send_frame.function == ModbusWriteSingleRegister ||
         m_master_last_send_frame.function == ModbusWriteMultipleRegisters)
     {
-            emit writeFunctionResponsed(ModbusErrorCode_Timeout);
+        emit writeFunctionResponsed(ModbusErrorCode_Timeout);
     }
     if(!m_recv_buffer.isEmpty())
     {
         m_recv_buffer.clear();
+    }
+    if(m_error_counter_dialog)
+    {
+        m_error_counter_dialog->increaseErrorCount(ModbusErrorCode_Timeout);
     }
     if(regs_view_widget)
     {
@@ -391,20 +414,30 @@ void ModbusWidget::comMasterReadyReadSlot()
         is_intact = Modbus_RTU::validPack(m_recv_buffer);
         if(is_intact)
         {
-            frame_info = std::move(Modbus_RTU::masterPack2Frame(m_recv_buffer));
-            m_master_last_send_frame = std::move(Modbus_RTU::slavePack2Frame(m_master_last_send_pack));
+            frame_info = Modbus_RTU::masterPack2Frame(m_recv_buffer);
+            m_master_last_send_frame = Modbus_RTU::slavePack2Frame(m_master_last_send_pack);
         }
         break;
     }
     case MODBUS_ASCII:
     {
-
+        is_intact = Modbus_ASCII::validPack(m_recv_buffer);
+        if(is_intact)
+        {
+            frame_info = Modbus_ASCII::masterPack2Frame(m_recv_buffer);
+            m_master_last_send_frame = Modbus_ASCII::slavePack2Frame(m_master_last_send_pack);
+        }
         break;
     }
     case MODBUS_TCP:
     case MODBUS_UDP:
     {
-
+        is_intact = Modbus_TCP::validPack(m_recv_buffer);
+        if(is_intact)
+        {
+            frame_info = Modbus_TCP::masterPack2Frame(m_recv_buffer);
+            m_master_last_send_frame = Modbus_TCP::slavePack2Frame(m_master_last_send_pack);
+        }
         break;
     }
     default:
@@ -419,16 +452,20 @@ void ModbusWidget::comMasterReadyReadSlot()
 #endif
         if(frame_info.id == m_master_last_send_frame.id)
         {
-            if(m_traffic_displayer->isVisible())
+            if(((m_protocol == MODBUS_TCP || m_protocol == MODBUS_UDP) && frame_info.trans_id == m_master_last_send_frame.trans_id)
+                || (m_protocol != MODBUS_TCP && m_protocol != MODBUS_UDP))
             {
-                m_traffic_displayer->appendPacket(QString("Rx: %1").arg(m_recv_buffer.toHex(' ').toUpper()), frame_info.function > ModbusFunctionError);
+                if(m_traffic_displayer->isVisible())
+                {
+                    m_traffic_displayer->appendPacket(QString("Rx: %1").arg(m_recv_buffer.toHex(' ').toUpper()), frame_info.function > ModbusFunctionError);
+                }
+                m_recv_timer->stop();
+                processModbusFrame(frame_info);
+                disconnect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
+                m_send_timer->start();
             }
-            m_recv_timer->stop();
-            processModbusFrame(frame_info);
-            disconnect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
-            m_recv_buffer.clear();
-            m_send_timer->start();
         }
+        m_recv_buffer.clear();
     }
 }
 
@@ -443,18 +480,29 @@ void ModbusWidget::comSlaveReadyReadSlot()
     case MODBUS_RTU:
     {
         is_intact = Modbus_RTU::validPack(m_recv_buffer);
-        frame_info = std::move(Modbus_RTU::slavePack2Frame(m_recv_buffer));
+        if(is_intact)
+        {
+            frame_info = Modbus_RTU::slavePack2Frame(m_recv_buffer);
+        }
         break;
     }
     case MODBUS_ASCII:
     {
-
+        is_intact = Modbus_ASCII::validPack(m_recv_buffer);
+        if(is_intact)
+        {
+            frame_info = Modbus_ASCII::slavePack2Frame(m_recv_buffer);
+        }
         break;
     }
     case MODBUS_TCP:
     case MODBUS_UDP:
     {
-
+        is_intact = Modbus_TCP::validPack(m_recv_buffer);
+        if(is_intact)
+        {
+            frame_info = Modbus_TCP::slavePack2Frame(m_recv_buffer);
+        }
         break;
     }
     default:
@@ -555,19 +603,15 @@ ModbusRegReadDefinitions *ModbusWidget::getSlaveReadDefinitions(int id, int func
                     else
                     {
                         error_code = ModbusErrorCode_Illegal_Function;
+                        return nullptr;
                     }
-                }
-                else
-                {
-                    error_code = ModbusErrorCode_Illegal_Data_Address;
-                    return nullptr;
                 }
             }
         }
     }
     if(found_id)
     {
-        error_code = ModbusErrorCode_Illegal_Function;
+        error_code = ModbusErrorCode_Illegal_Data_Address;
     }
     else
     {
@@ -600,6 +644,10 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
                 func_code == ModbusWriteMultipleRegisters)
             {
                 emit writeFunctionResponsed(error_code);
+            }
+            if(m_error_counter_dialog)
+            {
+                m_error_counter_dialog->increaseErrorCount(error_code);
             }
             if(regs_view_widget)
             {
@@ -653,6 +701,7 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
         ModbusRegReadDefinitions *reg_def = getSlaveReadDefinitions(frame_info.id, frame_info.function, frame_info.reg_addr,frame_info.quantity,error_code);
         ModbusFrameInfo reply_frame{};
         reply_frame.id = frame_info.id;
+        reply_frame.trans_id = frame_info.trans_id;
         if(reg_def)
         {
             reply_frame.function = frame_info.function;
@@ -703,7 +752,28 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
             reply_frame.function = frame_info.function + ModbusFunctionError;
             reply_frame.reg_values[0] = error_code;
         }
-        QByteArray reply_pack = Modbus_RTU::slaveFrame2Pack(reply_frame);
+        QByteArray reply_pack;
+        switch(m_protocol)
+        {
+        case MODBUS_RTU:
+        {
+            reply_pack = Modbus_RTU::slaveFrame2Pack(reply_frame);
+            break;
+        }
+        case MODBUS_ASCII:
+        {
+            reply_pack = Modbus_ASCII::slaveFrame2Pack(reply_frame);
+            break;
+        }
+        case MODBUS_TCP:
+        case MODBUS_UDP:
+        {
+            reply_pack = Modbus_TCP::slaveFrame2Pack(reply_frame);
+            break;
+        }
+        default:
+            break;
+        }
 #if PRINT_TRAFFIC
         qDebug()<<"Slave Send: "<<reply_pack.toHex(' ').toUpper();
 #endif

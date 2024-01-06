@@ -5,6 +5,8 @@
 
 quint16 CRC_16(QByteArray data,int len);
 
+quint8 LRC(QByteArray data,int len);
+
 int pageConvert(int num ,int page);
 
 template<class T> T myFromLittleEndianByteSwap(const void *src)
@@ -74,5 +76,7 @@ K getKeyByValue(const QMap<K,V> &map, V val)
 
 quint16 getBit(quint8 data, int bit_index);
 void setBit(quint8 &data, int bit_index, quint16 value);
+
+void setModbusPacketTransID(QByteArray &pack,quint16 trans_id);
 
 #endif // UTILS_H
