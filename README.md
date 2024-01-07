@@ -1,9 +1,11 @@
 # DebugMyProtocol
 <br/>
+
 **A Modbus communication protocol debugging tool (Modbus poll, Modbus slave likely),support multi-master and multi-slave online at the same time.**
 <br/>
 ## Supported connection types:
 <br/>
+
 *Serial Port*
 <br/>
 *TCP Server*
@@ -11,10 +13,10 @@
 *TCP Client*
 <br/>
 *UDP*
-<br/>
-<br/>
+
 ## Supported protocols:
 <br/>
+
 *Modbus RTU*
 <br/>
 *Modbus RTU over TCP/IP*
@@ -34,8 +36,10 @@
 <br/>
 ## Supported Modbus Function Codes:
 <br/>
+
 **Master:**
 <br/>
+
 *01 Read Coils*
 <br/>
 *02 Read Descrete Inputs*
@@ -66,6 +70,7 @@
 <br/>
 ## support multiple data formats:
 <br/>
+
 *Coil*
 <br/>
 *Signed*
@@ -129,11 +134,13 @@
 <br/>
 ## Support display the communication traffic:
 <br/>
+
 ![commmunication_traffic](Images/commmunication_traffic.jpg.png)
 <br/>
 <br/>
 ## Support error counters:
 <br/>
+
 ![error_counters](Images/error_counters.png)
 <br/>
 <br/>
