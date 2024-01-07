@@ -68,6 +68,7 @@ public:
 
 signals:
     void writeFunctionTriggered(const ModbusFrameInfo &frame_info);
+    void closed(ModbusRegReadDefinitions *reg_defines);
 
 private slots:
     void formatActionTriggered();

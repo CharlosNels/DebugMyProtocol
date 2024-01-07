@@ -29,7 +29,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         modbus_rtu.h modbus_rtu.cpp
         modbus_ascii.h modbus_ascii.cpp
         modbus_tcp.h modbus_tcp.cpp
-        mqtt.h mqtt.cpp
+
         coap.h coap.cpp
 
 

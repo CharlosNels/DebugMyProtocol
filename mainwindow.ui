@@ -40,26 +40,6 @@
         </item>
        </layout>
       </widget>
-      <widget class="QWidget" name="tab_2">
-       <attribute name="title">
-        <string>MQTT</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item>
-         <widget class="QMdiArea" name="mdi_area_mqtt"/>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="tab_3">
-       <attribute name="title">
-        <string>CoAP</string>
-       </attribute>
-       <layout class="QVBoxLayout" name="verticalLayout_4">
-        <item>
-         <widget class="QMdiArea" name="mdi_area_coap"/>
-        </item>
-       </layout>
-      </widget>
      </widget>
     </item>
    </layout>

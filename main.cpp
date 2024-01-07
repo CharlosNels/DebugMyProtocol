@@ -32,7 +32,7 @@ void myMessageHandle(QtMsgType msg_type, const QMessageLogContext& msg_ctx, cons
 
 int main(int argc, char *argv[])
 {
-    // qInstallMessageHandler(myMessageHandle);
+    qInstallMessageHandler(myMessageHandle);
     QApplication a(argc, argv);
     MainWindow w;
     w.show();

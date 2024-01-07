@@ -391,80 +391,112 @@ void ModbusWriteMultipleRegistersDialog::on_list_values_itemDoubleClicked(QListW
     case CellFormat::Format_32_Bit_Float_Big_Endian:
     {
         float value = myFromBigEndianByteSwap<float>(&m_reg_values[data_index]);
-        float input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 6, &input_ok);
+        QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
         if(input_ok)
         {
-            myToBigEndianByteSwap<float>(input_val, &m_reg_values[data_index]);
+            float new_val = input_val.toFloat(&cvt_ok);
+            if(cvt_ok)
+            {
+                myToBigEndianByteSwap<float>(new_val, &m_reg_values[data_index]);
+            }
         }
         break;
     }
     case CellFormat::Format_32_Bit_Float_Little_Endian:
     {
         float value = myFromLittleEndianByteSwap<float>(&m_reg_values[data_index]);
-        float input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 6, &input_ok);
+        QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
         if(input_ok)
         {
-            myToLittleEndianByteSwap<float>(input_val, &m_reg_values[data_index]);
+            float new_val = input_val.toFloat(&cvt_ok);
+            if(cvt_ok)
+            {
+                myToLittleEndianByteSwap<float>(new_val, &m_reg_values[data_index]);
+            }
         }
         break;
     }
     case CellFormat::Format_32_Bit_Float_Big_Endian_Byte_Swap:
     {
         float value = qFromBigEndian<float>(&m_reg_values[data_index]);
-        float input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 6, &input_ok);
+        QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
         if(input_ok)
         {
-            qToBigEndian<float>(input_val, &m_reg_values[data_index]);
+            float new_val = input_val.toFloat(&cvt_ok);
+            if(cvt_ok)
+            {
+                qToBigEndian<float>(new_val, &m_reg_values[data_index]);
+            }
         }
         break;
     }
     case CellFormat::Format_32_Bit_Float_Little_Endian_Byte_Swap:
     {
         float value = qFromLittleEndian<float>(&m_reg_values[data_index]);
-        float input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 6, &input_ok);
+        QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
         if(input_ok)
         {
-            qToLittleEndian<float>(input_val, &m_reg_values[data_index]);
+            float new_val = input_val.toFloat(&cvt_ok);
+            if(cvt_ok)
+            {
+                qToLittleEndian<float>(new_val, &m_reg_values[data_index]);
+            }
         }
         break;
     }
     case CellFormat::Format_64_Bit_Float_Big_Endian:
     {
         double value = myFromBigEndianByteSwap<double>(&m_reg_values[data_index]);
-        double input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 15, &input_ok);
+        QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
         if(input_ok)
         {
-            myToBigEndianByteSwap<double>(input_val, &m_reg_values[data_index]);
+            double new_val = input_val.toDouble(&cvt_ok);
+            if(cvt_ok)
+            {
+                myToBigEndianByteSwap<double>(new_val, &m_reg_values[data_index]);
+            }
         }
         break;
     }
     case CellFormat::Format_64_Bit_Float_Little_Endian:
     {
         double value = myFromLittleEndianByteSwap<double>(&m_reg_values[data_index]);
-        double input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 15, &input_ok);
+        QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
         if(input_ok)
         {
-            myToLittleEndianByteSwap<double>(input_val, &m_reg_values[data_index]);
+            double new_val = input_val.toDouble(&cvt_ok);
+            if(cvt_ok)
+            {
+                myToLittleEndianByteSwap<double>(new_val, &m_reg_values[data_index]);
+            }
         }
         break;
     }
     case CellFormat::Format_64_Bit_Float_Big_Endian_Byte_Swap:
     {
         double value = qFromBigEndian<double>(&m_reg_values[data_index]);
-        double input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 15, &input_ok);
+        QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
         if(input_ok)
         {
-            qToBigEndian<double>(input_val, &m_reg_values[data_index]);
+            double new_val = input_val.toDouble(&cvt_ok);
+            if(cvt_ok)
+            {
+                qToBigEndian<double>(new_val, &m_reg_values[data_index]);
+            }
         }
         break;
     }
     case CellFormat::Format_64_Bit_Float_Little_Endian_Byte_Swap:
     {
         double value = qFromLittleEndian<double>(&m_reg_values[data_index]);
-        double input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 15, &input_ok);
+        QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
         if(input_ok)
         {
-            qToLittleEndian<double>(input_val, &m_reg_values[data_index]);
+            double new_val = input_val.toDouble(&cvt_ok);
+            if(cvt_ok)
+            {
+                qToLittleEndian<double>(new_val, &m_reg_values[data_index]);
+            }
         }
         break;
     }

@@ -32,6 +32,7 @@ signals:
     void writeFunctionResponsed(int error_code);
 
 private slots:
+    void RegsViewWidgetClosed(ModbusRegReadDefinitions *reg_defines);
     void writeFunctionTriggered(QByteArray pack);
     void writeFrameTriggered(const ModbusFrameInfo &frame_info);
     void actionFunction05Triggered();
@@ -43,6 +44,8 @@ private slots:
     void actionSetRecvTimeoutTriggered();
     void actionDisplayTrafficTriggered();
     void actionErrorCounterTriggered();
+    void actionCascadeWindowTriggered();
+    void actionTileWindowTriggered();
     void regDefinitionsCreated(ModbusRegReadDefinitions *reg_defines);
     void scanTimerTimeoutSlot();
     void sendTimerTimeoutSlot();

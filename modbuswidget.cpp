@@ -76,6 +76,12 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com, int protocol, QWidget
     QAction *show_frame_action = tool_menu->addAction(tr("Display Communication"));
     connect(show_frame_action, &QAction::triggered, this, &ModbusWidget::actionDisplayTrafficTriggered);
 
+    QMenu *window_menu = menu_bar->addMenu(tr("Window"));
+    QAction *cascade_window_action = window_menu->addAction(tr("Cascade"));
+    connect(cascade_window_action, &QAction::triggered, this, &ModbusWidget::actionCascadeWindowTriggered);
+    QAction *tile_window_action = window_menu->addAction(tr("Tile"));
+    connect(tile_window_action, &QAction::triggered, this, &ModbusWidget::actionTileWindowTriggered);
+
     if(m_is_master)
     {
         QAction *error_counter_action = tool_menu->addAction(tr("Error Counter"));
@@ -129,6 +135,14 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com, int protocol, QWidget
 ModbusWidget::~ModbusWidget()
 {
     delete ui;
+}
+
+void ModbusWidget::RegsViewWidgetClosed(ModbusRegReadDefinitions *reg_defines)
+{
+    m_reg_defines.removeOne(reg_defines);
+    m_last_scan_timestamp_map.remove(reg_defines);
+    m_reg_def_widget_map.remove(reg_defines);
+    delete reg_defines;
 }
 
 void ModbusWidget::writeFunctionTriggered(QByteArray pack)
@@ -278,6 +292,16 @@ void ModbusWidget::actionErrorCounterTriggered()
     }
 }
 
+void ModbusWidget::actionCascadeWindowTriggered()
+{
+    m_regs_area->cascadeSubWindows();
+}
+
+void ModbusWidget::actionTileWindowTriggered()
+{
+    m_regs_area->tileSubWindows();
+}
+
 void ModbusWidget::regDefinitionsCreated(ModbusRegReadDefinitions *reg_defines)
 {
     if(validRegsDefinition(reg_defines))
@@ -285,6 +309,7 @@ void ModbusWidget::regDefinitionsCreated(ModbusRegReadDefinitions *reg_defines)
         m_reg_defines.append(reg_defines);
         RegsViewWidget *regs_view_widget = new RegsViewWidget(reg_defines,this);
         connect(regs_view_widget, &RegsViewWidget::writeFunctionTriggered, this, &ModbusWidget::writeFrameTriggered);
+        connect(regs_view_widget, &RegsViewWidget::closed, this, &ModbusWidget::RegsViewWidgetClosed);
         regs_view_widget->setWindowTitle(QString("ID:%1 - Registers : %2").arg(reg_defines->id).arg(reg_defines->reg_addr));
         m_last_scan_timestamp_map[reg_defines] = 0;
         m_reg_def_widget_map[reg_defines] = regs_view_widget;
@@ -319,29 +344,21 @@ void ModbusWidget::scanTimerTimeoutSlot()
 
 void ModbusWidget::sendTimerTimeoutSlot()
 {
+    bool has_pack{false};
     if(!m_manual_list.isEmpty())
     {
+        has_pack = true;
         m_master_last_send_pack = m_manual_list.first();
-#if PRINT_TRAFFIC
-        qDebug()<<"Master Send: "<<m_master_last_send_pack.toHex(' ').toUpper();
-#endif
-        if(m_protocol == MODBUS_TCP || m_protocol == MODBUS_UDP)
-        {
-            setModbusPacketTransID(m_master_last_send_pack, m_trans_id);
-            ++m_trans_id;
-        }
-        m_com->write(m_master_last_send_pack);
-        connect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
-        if(m_traffic_displayer->isVisible())
-        {
-            m_traffic_displayer->appendPacket(QString("Tx: %1").arg(m_master_last_send_pack.toHex(' ').toUpper()), false);
-        }
-        m_send_timer->stop();
-        m_recv_timer->start(m_recv_timeout_ms);
     }
     else if(!m_cycle_list.isEmpty())
     {
+        has_pack = true;
         m_master_last_send_pack = m_cycle_list.first();
+        RegsViewWidget *regs_view_widget = m_cycle_widget_list.first();
+        regs_view_widget->increaseSendCount();
+    }
+    if(has_pack)
+    {
 #if PRINT_TRAFFIC
         qDebug()<<"Master Send: "<<m_master_last_send_pack.toHex(' ').toUpper();
 #endif
@@ -358,9 +375,6 @@ void ModbusWidget::sendTimerTimeoutSlot()
         }
         m_send_timer->stop();
         m_recv_timer->start(m_recv_timeout_ms);
-        RegsViewWidget *regs_view_widget = m_cycle_widget_list.first();
-        regs_view_widget->increaseSendCount();
-
     }
 }
 

@@ -154,7 +154,6 @@ RegsViewWidget::~RegsViewWidget()
 {
     delete ui;
     delete []m_register_values;
-    delete m_reg_defines;
 }
 
 void RegsViewWidget::setRegDef(ModbusRegReadDefinitions *reg_defines)
@@ -227,10 +226,7 @@ bool RegsViewWidget::setRegisterValues(const quint16 *reg_values, quint16 reg_ad
     if(reg_addr >= m_reg_defines->reg_addr && reg_addr + quantity <= m_reg_defines->reg_addr + m_reg_defines->quantity)
     {
         quint16 index = reg_addr - m_reg_defines->reg_addr;
-        for(int i = 0;i < quantity;++i)
-        {
-            m_register_values[i + index] = reg_values[i];
-        }
+        memcpy(&m_register_values[index], reg_values, quantity * 2);
         updateRegisterValues();
     }
     else
@@ -245,10 +241,7 @@ bool RegsViewWidget::getRegisterValues(quint16 *reg_values, quint16 reg_addr, qu
     if(reg_addr >= m_reg_defines->reg_addr && reg_addr + quantity <= m_reg_defines->reg_addr + m_reg_defines->quantity)
     {
         quint16 index = reg_addr - m_reg_defines->reg_addr;
-        for(int i = 0;i < quantity;++i)
-        {
-            reg_values[i] = m_register_values[i + index];
-        }
+        memcpy(reg_values, &m_register_values[index], quantity * 2);
     }
     else
     {
@@ -309,7 +302,7 @@ void RegsViewWidget::formatActionTriggered()
             {
                 if(row > m_table_model->rowCount() - 4)
                 {
-                    return;
+                    break;
                 }
                 m_cell_formats[row] = format;
                 m_cell_formats[row + 1] = CellFormat::Format_None;
@@ -875,80 +868,112 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
             case Format_32_Bit_Float_Big_Endian:
             {
                 float value = myFromBigEndianByteSwap<float>(&m_register_values[index.row()]);
-                float input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 6, &input_ok);
+                QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
                 if(input_ok)
                 {
-                    myToBigEndianByteSwap<float>(input_val, &m_register_values[index.row()]);
+                    float new_val = input_val.toFloat(&cvt_ok);
+                    if(cvt_ok)
+                    {
+                        myToBigEndianByteSwap<float>(new_val, &m_register_values[index.row()]);
+                    }
                 }
                 break;
             }
             case Format_32_Bit_Float_Little_Endian:
             {
                 float value = myFromLittleEndianByteSwap<float>(&m_register_values[index.row()]);
-                float input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 6, &input_ok);
+                QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
                 if(input_ok)
                 {
-                    myToLittleEndianByteSwap<float>(input_val, &m_register_values[index.row()]);
+                    float new_val = input_val.toFloat(&cvt_ok);
+                    if(cvt_ok)
+                    {
+                        myToLittleEndianByteSwap<float>(new_val, &m_register_values[index.row()]);
+                    }
                 }
                 break;
             }
             case Format_32_Bit_Float_Big_Endian_Byte_Swap:
             {
                 float value = qFromBigEndian<float>(&m_register_values[index.row()]);
-                float input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 6, &input_ok);
+                QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
                 if(input_ok)
                 {
-                    qToBigEndian<float>(input_val, &m_register_values[index.row()]);
+                    float new_val = input_val.toFloat(&cvt_ok);
+                    if(cvt_ok)
+                    {
+                        qToBigEndian<float>(new_val, &m_register_values[index.row()]);
+                    }
                 }
                 break;
             }
             case Format_32_Bit_Float_Little_Endian_Byte_Swap:
             {
                 float value = qFromLittleEndian<float>(&m_register_values[index.row()]);
-                float input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 6, &input_ok);
+                QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
                 if(input_ok)
                 {
-                    qToLittleEndian<float>(input_val, &m_register_values[index.row()]);
+                    float new_val = input_val.toFloat(&cvt_ok);
+                    if(cvt_ok)
+                    {
+                        qToLittleEndian<float>(new_val, &m_register_values[index.row()]);
+                    }
                 }
                 break;
             }
             case Format_64_Bit_Float_Big_Endian:
             {
                 double value = myFromBigEndianByteSwap<double>(&m_register_values[index.row()]);
-                double input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 15, &input_ok);
+                QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
                 if(input_ok)
                 {
-                    myToBigEndianByteSwap<double>(input_val, &m_register_values[index.row()]);
+                    double new_val = input_val.toDouble(&cvt_ok);
+                    if(cvt_ok)
+                    {
+                        myToBigEndianByteSwap<double>(new_val, &m_register_values[index.row()]);
+                    }
                 }
                 break;
             }
             case Format_64_Bit_Float_Little_Endian:
             {
                 double value = myFromLittleEndianByteSwap<double>(&m_register_values[index.row()]);
-                double input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 15, &input_ok);
+                QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
                 if(input_ok)
                 {
-                    myToLittleEndianByteSwap<double>(input_val, &m_register_values[index.row()]);
+                    double new_val = input_val.toDouble(&cvt_ok);
+                    if(input_ok)
+                    {
+                        myToLittleEndianByteSwap<double>(new_val, &m_register_values[index.row()]);
+                    }
                 }
                 break;
             }
             case Format_64_Bit_Float_Big_Endian_Byte_Swap:
             {
                 double value = qFromBigEndian<double>(&m_register_values[index.row()]);
-                double input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 15, &input_ok);
+                QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
                 if(input_ok)
                 {
-                    qToBigEndian<double>(input_val, &m_register_values[index.row()]);
+                    double new_val = input_val.toDouble(&cvt_ok);
+                    if(input_ok)
+                    {
+                        qToBigEndian<double>(new_val, &m_register_values[index.row()]);
+                    }
                 }
                 break;
             }
             case Format_64_Bit_Float_Little_Endian_Byte_Swap:
             {
                 double value = qFromLittleEndian<double>(&m_register_values[index.row()]);
-                double input_val = QInputDialog::getDouble(this, tr("Edit Register"), tr("value:"), value, -2.147483647E9, 2.147483647E9, 15, &input_ok);
+                QString input_val = QInputDialog::getText(this, tr("Edit Register"), tr("value:"), QLineEdit::Normal, QString("%1").arg(value), &input_ok);
                 if(input_ok)
                 {
-                    qToLittleEndian<double>(input_val, &m_register_values[index.row()]);
+                    double new_val = input_val.toDouble(&cvt_ok);
+                    if(cvt_ok)
+                    {
+                        qToLittleEndian<double>(new_val, &m_register_values[index.row()]);
+                    }
                 }
                 break;
             }
@@ -962,6 +987,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
         else if(m_reg_defines->is_master
                 &&(m_reg_defines->function == ModbusReadCoils || m_reg_defines->function == ModbusReadHoldingRegisters))
         {
+            bool data_valid{false};
             ModbusFrameInfo frame_info{};
             frame_info.id = m_reg_defines->id;
             frame_info.reg_addr = m_reg_defines->reg_addr + index.row();
@@ -973,6 +999,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                     QString input_item = QInputDialog::getItem(this, tr("Edit Coil Value"), tr("Value:"), {tr("On"),tr("Off")}, item_index, false, &input_ok);
                     if(input_ok)
                     {
+                        data_valid = true;
                         frame_info.function = ModbusWriteSingleCoil;
                         frame_info.quantity = 1;
                         frame_info.reg_values[0] = input_item == tr("On") ? 0xFF00 : 0;
@@ -985,6 +1012,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                     qint16 input_value = QInputDialog::getInt(this, tr("Edit Signed Value"), tr("Value:"), *value, -32768, 32767, 1, &input_ok);
                     if(input_ok)
                     {
+                        data_valid = true;
                         frame_info.function = ModbusWriteSingleRegister;
                         frame_info.quantity = 1;
                         qint16 *reg_val = (qint16*)&frame_info.reg_values[0];
@@ -998,6 +1026,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                     quint16 input_value = QInputDialog::getInt(this, tr("Edit Unsigned Value"), tr("Value:"), *value, 0, 65535, 1, &input_ok);
                     if(input_ok)
                     {
+                        data_valid = true;
                         frame_info.function = ModbusWriteSingleRegister;
                         frame_info.quantity = 1;
                         quint16 *reg_val = (quint16*)&frame_info.reg_values[0];
@@ -1014,6 +1043,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         quint16 value = input_value.toUShort(&cvt_ok, 16);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteSingleRegister;
                             frame_info.quantity = 1;
                             quint16 *reg_val = (quint16*)&frame_info.reg_values[0];
@@ -1030,6 +1060,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         quint16 value = input_value.toUShort(&cvt_ok, 2);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteSingleRegister;
                             frame_info.quantity = 1;
                             quint16 *reg_val = (quint16*)&frame_info.reg_values[0];
@@ -1044,6 +1075,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                     qint32 input_value = QInputDialog::getInt(this, tr("Edit 32-Bit Signed Value"), tr("Value:"), value, -2147483648, 2147483647, 1, &input_ok);
                     if(input_ok)
                     {
+                        data_valid = true;
                         frame_info.function = ModbusWriteMultipleRegisters;
                         frame_info.quantity = 2;
                         qToBigEndian<qint32>(input_value, &frame_info.reg_values[0]);
@@ -1056,6 +1088,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                     qint32 input_value = QInputDialog::getInt(this, tr("Edit 32-Bit Signed Value"), tr("Value:"), value, -2147483648, 2147483647, 1, &input_ok);
                     if(input_ok)
                     {
+                        data_valid = true;
                         frame_info.function = ModbusWriteMultipleRegisters;
                         frame_info.quantity = 2;
                         qToLittleEndian<qint32>(input_value, &frame_info.reg_values[0]);
@@ -1068,6 +1101,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                     qint32 input_value = QInputDialog::getInt(this, tr("Edit 32-Bit Signed Value"), tr("Value:"), value, -2147483648, 2147483647, 1, &input_ok);
                     if(input_ok)
                     {
+                        data_valid = true;
                         frame_info.function = ModbusWriteMultipleRegisters;
                         frame_info.quantity = 2;
                         myToBigEndianByteSwap<qint32>(input_value, &frame_info.reg_values[0]);
@@ -1080,6 +1114,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                     qint32 input_value = QInputDialog::getInt(this, tr("Edit 32-Bit Signed Value"), tr("Value:"), value, -2147483648, 2147483647, 1, &input_ok);
                     if(input_ok)
                     {
+                        data_valid = true;
                         frame_info.function = ModbusWriteMultipleRegisters;
                         frame_info.quantity = 2;
                         myToLittleEndianByteSwap<qint32>(input_value, &frame_info.reg_values[0]);
@@ -1089,48 +1124,68 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                 case Format_32_Bit_Unsigned_Big_Endian:
                 {
                     quint32 value = qFromBigEndian<quint32>(&m_register_values[index.row()]);
-                    quint32 input_value = QInputDialog::getInt(this, tr("Edit 32-Bit Unsigned Value"), tr("Value:"), value, 0, 4294967295, 1, &input_ok);
+                    QString input_value = QInputDialog::getText(this, tr("Edit 32-Bit Unsigned Value"), tr("Value:"), QLineEdit::Normal, QString::number(value), &input_ok);
                     if(input_ok)
                     {
-                        frame_info.function = ModbusWriteMultipleRegisters;
-                        frame_info.quantity = 2;
-                        qToBigEndian<quint32>(input_value, &frame_info.reg_values[0]);
+                        quint32 new_val = input_value.toUInt(&cvt_ok);
+                        if(cvt_ok)
+                        {
+                            data_valid = true;
+                            frame_info.function = ModbusWriteMultipleRegisters;
+                            frame_info.quantity = 2;
+                            qToBigEndian<quint32>(new_val, &frame_info.reg_values[0]);
+                        }
                     }
                     break;
                 }
                 case Format_32_Bit_Unsigned_Little_Endian:
                 {
                     quint32 value = qFromLittleEndian<quint32>(&m_register_values[index.row()]);
-                    quint32 input_value = QInputDialog::getInt(this, tr("Edit 32-Bit Unsigned Value"), tr("Value:"), value, 0, 4294967295, 1, &input_ok);
+                    QString input_value = QInputDialog::getText(this, tr("Edit 32-Bit Unsigned Value"), tr("Value:"), QLineEdit::Normal, QString::number(value), &input_ok);
                     if(input_ok)
                     {
-                        frame_info.function = ModbusWriteMultipleRegisters;
-                        frame_info.quantity = 2;
-                        qToLittleEndian<quint32>(input_value, &frame_info.reg_values[0]);
+                        quint32 new_val = input_value.toUInt(&cvt_ok);
+                        if(cvt_ok)
+                        {
+                            data_valid = true;
+                            frame_info.function = ModbusWriteMultipleRegisters;
+                            frame_info.quantity = 2;
+                            qToLittleEndian<quint32>(new_val, &frame_info.reg_values[0]);
+                        }
                     }
                     break;
                 }
                 case Format_32_Bit_Unsigned_Big_Endian_Byte_Swap:
                 {
                     quint32 value = myFromBigEndianByteSwap<quint32>(&m_register_values[index.row()]);
-                    quint32 input_value = QInputDialog::getInt(this, tr("Edit 32-Bit Unsigned Value"), tr("Value:"), value, 0, 4294967295, 1, &input_ok);
+                    QString input_value = QInputDialog::getText(this, tr("Edit 32-Bit Unsigned Value"), tr("Value:"), QLineEdit::Normal, QString::number(value), &input_ok);
                     if(input_ok)
                     {
-                        frame_info.function = ModbusWriteMultipleRegisters;
-                        frame_info.quantity = 2;
-                        myToBigEndianByteSwap<quint32>(input_value, &frame_info.reg_values[0]);
+                        quint32 new_val = input_value.toUInt(&cvt_ok);
+                        if(cvt_ok)
+                        {
+                            data_valid = true;
+                            frame_info.function = ModbusWriteMultipleRegisters;
+                            frame_info.quantity = 2;
+                            myToBigEndianByteSwap<quint32>(new_val, &frame_info.reg_values[0]);
+                        }
                     }
                     break;
                 }
                 case Format_32_Bit_Unsigned_Little_Endian_Byte_Swap:
                 {
                     quint32 value = myFromLittleEndianByteSwap<quint32>(&m_register_values[index.row()]);
-                    quint32 input_value = QInputDialog::getInt(this, tr("Edit 32-Bit Unsigned Value"), tr("Value:"), value, 0, 4294967295, 1, &input_ok);
+                    QString input_value = QInputDialog::getText(this, tr("Edit 32-Bit Unsigned Value"), tr("Value:"), QLineEdit::Normal, QString::number(value), &input_ok);
                     if(input_ok)
                     {
-                        frame_info.function = ModbusWriteMultipleRegisters;
-                        frame_info.quantity = 2;
-                        myToLittleEndianByteSwap<quint32>(input_value, &frame_info.reg_values[0]);
+                        quint32 new_val = input_value.toUInt(&cvt_ok);
+                        if(cvt_ok)
+                        {
+                            data_valid = true;
+                            frame_info.function = ModbusWriteMultipleRegisters;
+                            frame_info.quantity = 2;
+                            myToLittleEndianByteSwap<quint32>(new_val, &frame_info.reg_values[0]);
+                        }
                     }
                     break;
                 }
@@ -1143,6 +1198,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         qint64 input_value = input_text.toLongLong(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             qToBigEndian<qint64>(input_value, &frame_info.reg_values[0]);
@@ -1159,6 +1215,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         qint64 input_value = input_text.toLongLong(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             qToLittleEndian<qint64>(input_value, &frame_info.reg_values[0]);
@@ -1175,6 +1232,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         qint64 input_value = input_text.toLongLong(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             myToBigEndianByteSwap<qint64>(input_value, &frame_info.reg_values[0]);
@@ -1191,6 +1249,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         qint64 input_value = input_text.toLongLong(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             myToLittleEndianByteSwap<qint64>(input_value, &frame_info.reg_values[0]);
@@ -1207,6 +1266,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         quint64 input_value = input_text.toULongLong(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             qToBigEndian<quint64>(input_value, &frame_info.reg_values[0]);
@@ -1223,6 +1283,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         quint64 input_value = input_text.toULongLong(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             qToLittleEndian<quint64>(input_value, &frame_info.reg_values[0]);
@@ -1239,6 +1300,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         quint64 input_value = input_text.toULongLong(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             myToBigEndianByteSwap<quint64>(input_value, &frame_info.reg_values[0]);
@@ -1255,6 +1317,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         quint64 input_value = input_text.toULongLong(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             myToLittleEndianByteSwap<quint64>(input_value, &frame_info.reg_values[0]);
@@ -1271,6 +1334,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         float input_value = input_text.toFloat(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 2;
                             myToBigEndianByteSwap<float>(input_value, &frame_info.reg_values[0]);
@@ -1287,6 +1351,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         float input_value = input_text.toFloat(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 2;
                             myToLittleEndianByteSwap<float>(input_value, &frame_info.reg_values[0]);
@@ -1303,6 +1368,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         float input_value = input_text.toFloat(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 2;
                             qToBigEndian<float>(input_value, &frame_info.reg_values[0]);
@@ -1319,6 +1385,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         float input_value = input_text.toFloat(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 2;
                             qToLittleEndian<float>(input_value, &frame_info.reg_values[0]);
@@ -1335,6 +1402,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         double input_value = input_text.toDouble(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             myToBigEndianByteSwap<double>(input_value, &frame_info.reg_values[0]);
@@ -1351,6 +1419,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         double input_value = input_text.toDouble(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             myToLittleEndianByteSwap<double>(input_value, &frame_info.reg_values[0]);
@@ -1367,6 +1436,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         double input_value = input_text.toDouble(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             qToBigEndian<double>(input_value, &frame_info.reg_values[0]);
@@ -1383,6 +1453,7 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                         double input_value = input_text.toDouble(&cvt_ok);
                         if(cvt_ok)
                         {
+                            data_valid = true;
                             frame_info.function = ModbusWriteMultipleRegisters;
                             frame_info.quantity = 4;
                             qToLittleEndian<double>(input_value, &frame_info.reg_values[0]);
@@ -1393,13 +1464,17 @@ void RegsViewWidget::on_regs_table_view_doubleClicked(const QModelIndex &index)
                 default:
                     break;
             }
-            emit writeFunctionTriggered(frame_info);
+            if(data_valid)
+            {
+                emit writeFunctionTriggered(frame_info);
+            }
         }
     }
 }
 
 void RegsViewWidget::closeEvent(QCloseEvent *event)
 {
+    emit closed(m_reg_defines);
     deleteLater();
 }
 

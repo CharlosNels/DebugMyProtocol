@@ -48,16 +48,15 @@ const QMap<QString, QSerialPort::FlowControl> OpenRouteDialog::flow_control_map 
 
 const QMap<QString, QList<QString> > OpenRouteDialog::protocol_map = {
     {tr("Serial Port"), {"Modbus-RTU", "Modbus-ASCII"}},
-    {tr("TCP-Server"), {"Modbus-TCP", "MQTT", "Modbus-RTU", "Modbus-ASCII"}},
-    {tr("TCP-Client"), {"Modbus-TCP", "MQTT", "Modbus-RTU", "Modbus-ASCII"}},
+    {tr("TCP-Server"), {"Modbus-TCP", "Modbus-RTU", "Modbus-ASCII"}},
+    {tr("TCP-Client"), {"Modbus-TCP", "Modbus-RTU", "Modbus-ASCII"}},
     {"UDP", {"Modbus-UDP","Modbus-RTU","Modbus-ASCII"}}
 };
 
 const QMap<QString, int> OpenRouteDialog::protocol_enum_map = {
     {"Modbus-RTU", MODBUS_RTU},
     {"Modbus-ASCII", MODBUS_ASCII},
-    {"Modbus-TCP", MODBUS_TCP},
-    {"MQTT", MQTT}
+    {"Modbus-TCP", MODBUS_TCP}
 };
 
 OpenRouteDialog::OpenRouteDialog(QWidget *parent)

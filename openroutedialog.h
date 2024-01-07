@@ -18,8 +18,6 @@ enum Protocols{
     MODBUS_ASCII,
     MODBUS_TCP,
     MODBUS_UDP,
-    MQTT,
-    //COAP
 };
 
 class OpenRouteDialog : public QDialog
