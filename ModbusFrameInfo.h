@@ -2,6 +2,7 @@
 #define MODBUSFRAMEINFO_H
 
 #include <QtTypes>
+#include <QString>
 
 enum ModbusFunctions{
     ModbusReadCoils = 0x01,
@@ -45,6 +46,14 @@ struct ModbusFrameInfo{
     int reg_addr{};
     int quantity{};
     unsigned short reg_values[2000]{0};
+
+    QString toString() const
+    {
+        QString ret = QString("trans_id:%1 id:%2 function:%3 reg_addr:%4 quantity:%5 reg_values:%6")
+                          .arg(trans_id).arg(id).arg(function).arg(reg_addr).arg(quantity)
+                          .arg(QByteArray((char*)reg_values,quantity * 2).toHex(' ').toUpper());
+        return ret;
+    }
 };
 
 #endif // MODBUSFRAMEINFO_H

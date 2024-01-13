@@ -25,7 +25,7 @@ QByteArray Modbus_RTU::masterFrame2Pack(const ModbusFrameInfo &frame_info)
     {
         quint8 byte_num = quint8(pageConvert(frame_info.quantity, 8));
         ret.append(byte_num);
-        unsigned char const *coils = (unsigned char const *)frame_info.reg_values;
+        quint8 const *coils = (quint8 const *)frame_info.reg_values;
         for(int i = 0;i < byte_num;++i)
         {
             ret.append(coils[i]);
@@ -55,7 +55,7 @@ ModbusFrameInfo Modbus_RTU::masterPack2Frame(const QByteArray &pack)
         ret.function == ModbusReadDescreteInputs)
     {
         ret.quantity = quint8(pack[2]);
-        unsigned char *coils = (unsigned char *)ret.reg_values;
+        quint8 *coils = (quint8 *)ret.reg_values;
         for(int i = 0;i < ret.quantity;++i)
         {
             coils[i] = pack[3 + i];
@@ -65,24 +65,23 @@ ModbusFrameInfo Modbus_RTU::masterPack2Frame(const QByteArray &pack)
                ret.function == ModbusReadInputRegisters)
     {
         ret.quantity = quint8(pack[2]) / 2;
-        unsigned char *coils = (unsigned char *)ret.reg_values;
-        for(int i = 0;i < quint8(pack[2]);++i)
+        for(int i = 0;i < ret.quantity;++i)
         {
-            coils[i] = pack[3 + i];
+            ret.reg_values[i] = quint16(pack[3 + 2 * i]) << 8 | quint8(pack[4 + 2 * i]);
         }
     }
     else if(ret.function == ModbusWriteSingleCoil ||
                ret.function == ModbusWriteSingleRegister)
     {
         ret.quantity = 1;
-        unsigned char *coils = (unsigned char *)ret.reg_values;
+        quint8 *coils = (quint8 *)ret.reg_values;
         coils[0] = pack[4];
         coils[1] = pack[5];
     }
     else if(ret.function == ModbusWriteMultipleCoils
         || ret.function == ModbusWriteMultipleRegisters)
     {
-        ret.quantity = pack[4] << 8 | pack[5];
+        ret.quantity = quint16(pack[4]) << 8 | pack[5];
     }
     else if(ret.function > ModbusFunctionError)
     {
@@ -104,7 +103,7 @@ QByteArray Modbus_RTU::slaveFrame2Pack(const ModbusFrameInfo &frame_info)
         frame_info.function == ModbusInputStatus)
     {
         quint8 byte_num = quint8(pageConvert(frame_info.quantity, 8));
-        unsigned char const *coils = (unsigned char const *)frame_info.reg_values;
+        quint8 const *coils = (quint8 const *)frame_info.reg_values;
         ret.append(byte_num);
         for(int i = 0; i < byte_num; ++i)
         {
@@ -116,10 +115,10 @@ QByteArray Modbus_RTU::slaveFrame2Pack(const ModbusFrameInfo &frame_info)
     {
         quint8 byte_num = quint8(frame_info.quantity << 1);
         ret.append(quint8(byte_num));
-        unsigned char const *bytes = (unsigned char const *)frame_info.reg_values;
-        for(int i = 0;i < byte_num;++i)
+        for(int i = 0;i < frame_info.quantity;++i)
         {
-            ret.append(bytes[i]);
+            ret.append(quint8(frame_info.reg_values[i] >> 8 & 0xFF));
+            ret.append(quint8(frame_info.reg_values[i] & 0xFF));
         }
     }
     else if(frame_info.function == ModbusWriteSingleCoil ||
@@ -158,22 +157,22 @@ ModbusFrameInfo Modbus_RTU::slavePack2Frame(const QByteArray &pack)
         ret.function == ModbusReadHoldingRegisters ||
         ret.function == ModbusReadInputRegisters)
     {
-        ret.reg_addr = pack[2] << 8 | pack[3];
-        ret.quantity = pack[4] << 8 | pack[5];
+        ret.reg_addr = quint16(pack[2]) << 8 | pack[3];
+        ret.quantity = quint16(pack[4]) << 8 | pack[5];
     }
     else if(ret.function == ModbusWriteSingleCoil ||
                ret.function == ModbusWriteSingleRegister)
     {
-        ret.reg_addr = pack[2] << 8 | pack[3];
+        ret.reg_addr = quint16(pack[2]) << 8 | pack[3];
         ret.quantity = 1;
-        ret.reg_values[0] = pack[4] << 8 | pack[5];
+        ret.reg_values[0] = pack[4] << 8 | quint8(pack[5]);
     }
     else if(ret.function == ModbusWriteMultipleCoils)
     {
-        ret.reg_addr = pack[2] << 8 | pack[3];
-        ret.quantity = pack[4] << 8 | pack[5];
+        ret.reg_addr = quint16(pack[2]) << 8 | pack[3];
+        ret.quantity = quint16(pack[4]) << 8 | pack[5];
         int byte_num =  quint8(pack[6]);
-        unsigned char *coils = (unsigned char *)ret.reg_values;
+        quint8 *coils = (quint8 *)ret.reg_values;
         for(int i = 0;i < byte_num;++i)
         {
             coils[i] = pack[7 + i];
@@ -181,14 +180,11 @@ ModbusFrameInfo Modbus_RTU::slavePack2Frame(const QByteArray &pack)
     }
     else if(ret.function == ModbusWriteMultipleRegisters)
     {
-        ret.reg_addr = pack[2] << 8 | pack[3];
-        ret.quantity = pack[4] << 8 | pack[5];
-        int byte_num =  quint8(pack[6]);
-        unsigned char *coils = (unsigned char *)ret.reg_values;
-        for(int i = 0;i < byte_num; i+= 2)
+        ret.reg_addr = quint16(pack[2]) << 8 | pack[3];
+        ret.quantity = quint16(pack[4]) << 8 | pack[5];
+        for(int i = 0;i < ret.quantity; ++i)
         {
-            coils[i] = pack[i + 8];
-            coils[i + 1] = pack[i + 7];
+            ret.reg_values[i] = quint16(pack[7 + 2 * i]) << 8 | quint8(pack[8 + 2 * i]);
         }
     }
     return ret;

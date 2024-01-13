@@ -69,10 +69,9 @@ ModbusFrameInfo Modbus_ASCII::masterPack2Frame(const QByteArray &pack)
              ret.function == ModbusReadInputRegisters)
     {
         ret.quantity = quint8(hex_pack[2]) / 2;
-        unsigned char *coils = (unsigned char *)ret.reg_values;
-        for(int i = 0;i < quint8(hex_pack[2]);++i)
+        for(int i = 0;i < ret.quantity;++i)
         {
-            coils[i] = hex_pack[3 + i];
+            ret.reg_values[i] = quint16(hex_pack[3 + 2 * i]) << 8 | quint8(hex_pack[4 + 2 * i]);
         }
     }
     else if(ret.function == ModbusWriteSingleCoil ||
@@ -120,10 +119,10 @@ QByteArray Modbus_ASCII::slaveFrame2Pack(const ModbusFrameInfo &frame_info)
     {
         quint8 byte_num = quint8(frame_info.quantity << 1);
         ret.append(quint8(byte_num));
-        unsigned char const *bytes = (unsigned char const *)frame_info.reg_values;
-        for(int i = 0;i < byte_num;++i)
+        for(int i = 0;i < frame_info.quantity;++i)
         {
-            ret.append(bytes[i]);
+            ret.append(quint8(frame_info.reg_values[i] >> 8 & 0xFF));
+            ret.append(quint8(frame_info.reg_values[i] & 0xFF));
         }
     }
     else if(frame_info.function == ModbusWriteSingleCoil ||
@@ -169,7 +168,7 @@ ModbusFrameInfo Modbus_ASCII::slavePack2Frame(const QByteArray &pack)
     {
         ret.reg_addr = hex_pack[2] << 8 | hex_pack[3];
         ret.quantity = 1;
-        ret.reg_values[0] = hex_pack[4] << 8 | hex_pack[5];
+        ret.reg_values[0] = hex_pack[4] << 8 | quint8(hex_pack[5]);
     }
     else if(ret.function == ModbusWriteMultipleCoils)
     {
@@ -186,12 +185,9 @@ ModbusFrameInfo Modbus_ASCII::slavePack2Frame(const QByteArray &pack)
     {
         ret.reg_addr = hex_pack[2] << 8 | hex_pack[3];
         ret.quantity = hex_pack[4] << 8 | hex_pack[5];
-        int byte_num =  quint8(hex_pack[6]);
-        unsigned char *coils = (unsigned char *)ret.reg_values;
-        for(int i = 0;i < byte_num; i+= 2)
+        for(int i = 0;i < ret.quantity; ++i)
         {
-            coils[i] = hex_pack[i + 8];
-            coils[i + 1] = hex_pack[i + 7];
+            ret.reg_values[i] = quint16(hex_pack[7 + 2 * i]) << 8 | quint8(hex_pack[8 + i * 2]);
         }
     }
     return ret;

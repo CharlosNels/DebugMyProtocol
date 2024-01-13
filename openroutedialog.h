@@ -5,6 +5,7 @@
 #include <QSerialPort>
 #include <boost/shared_ptr.hpp>
 #include <QList>
+#include <system_error>
 
 namespace Ui {
 class OpenRouteDialog;

@@ -74,10 +74,9 @@ ModbusFrameInfo Modbus_TCP::masterPack2Frame(const QByteArray &pack)
              ret.function == ModbusReadInputRegisters)
     {
         ret.quantity = quint8(data_pack[2]) / 2;
-        unsigned char *coils = (unsigned char *)ret.reg_values;
-        for(int i = 0;i < quint8(data_pack[2]);++i)
+        for(int i = 0;i < ret.quantity;++i)
         {
-            coils[i] = data_pack[3 + i];
+            ret.reg_values[i] = quint16(data_pack[3 + 2 * i]) << 8 | quint8(data_pack[4 + 2 * i]);
         }
     }
     else if(ret.function == ModbusWriteSingleCoil ||
@@ -130,10 +129,10 @@ QByteArray Modbus_TCP::slaveFrame2Pack(const ModbusFrameInfo &frame_info)
     {
         quint8 byte_num = quint8(frame_info.quantity << 1);
         data_pack.append(quint8(byte_num));
-        unsigned char const *bytes = (unsigned char const *)frame_info.reg_values;
-        for(int i = 0;i < byte_num;++i)
+        for(int i = 0;i < frame_info.quantity;++i)
         {
-            data_pack.append(bytes[i]);
+            data_pack.append(quint8(frame_info.reg_values[i] >> 8 & 0xFF));
+            data_pack.append(quint8(frame_info.reg_values[i] & 0xFF));
         }
     }
     else if(frame_info.function == ModbusWriteSingleCoil ||
@@ -183,7 +182,7 @@ ModbusFrameInfo Modbus_TCP::slavePack2Frame(const QByteArray &pack)
     {
         ret.reg_addr = data_pack[2] << 8 | data_pack[3];
         ret.quantity = 1;
-        ret.reg_values[0] = data_pack[4] << 8 | data_pack[5];
+        ret.reg_values[0] = data_pack[4] << 8 | quint8(data_pack[5]);
     }
     else if(ret.function == ModbusWriteMultipleCoils)
     {
@@ -200,12 +199,9 @@ ModbusFrameInfo Modbus_TCP::slavePack2Frame(const QByteArray &pack)
     {
         ret.reg_addr = data_pack[2] << 8 | data_pack[3];
         ret.quantity = data_pack[4] << 8 | data_pack[5];
-        int byte_num =  quint8(data_pack[6]);
-        unsigned char *coils = (unsigned char *)ret.reg_values;
-        for(int i = 0;i < byte_num; i+= 2)
+        for(int i = 0;i < ret.quantity; i+= 2)
         {
-            coils[i] = data_pack[i + 8];
-            coils[i + 1] = data_pack[i + 7];
+            ret.reg_values[i] = quint16(data_pack[7 + 2 * i]) << 8 | quint8(data_pack[8 + 2 * i]);
         }
     }
     return ret;
