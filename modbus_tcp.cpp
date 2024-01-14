@@ -56,7 +56,7 @@ QByteArray Modbus_TCP::masterFrame2Pack(const ModbusFrameInfo &frame_info)
 ModbusFrameInfo Modbus_TCP::masterPack2Frame(const QByteArray &pack)
 {
     ModbusFrameInfo ret{};
-    ret.trans_id = pack[0] << 8 | pack[1];
+    ret.trans_id = quint16(pack[0]) << 8 | quint8(pack[1]);
     QByteArray data_pack = pack.mid(6);
     ret.id = quint8(data_pack[0]);
     ret.function = quint8(data_pack[1]);
@@ -90,7 +90,7 @@ ModbusFrameInfo Modbus_TCP::masterPack2Frame(const QByteArray &pack)
     else if(ret.function == ModbusWriteMultipleCoils
              || ret.function == ModbusWriteMultipleRegisters)
     {
-        ret.quantity = data_pack[4] << 8 | data_pack[5];
+        ret.quantity = quint16(data_pack[4]) << 8 | quint8(data_pack[5]);
     }
     else if(ret.function > ModbusFunctionError)
     {
@@ -165,7 +165,7 @@ QByteArray Modbus_TCP::slaveFrame2Pack(const ModbusFrameInfo &frame_info)
 ModbusFrameInfo Modbus_TCP::slavePack2Frame(const QByteArray &pack)
 {
     ModbusFrameInfo ret{};
-    ret.trans_id = pack[0] << 8 | pack[1];
+    ret.trans_id = quint16(pack[0]) << 8 | quint8(pack[1]);
     QByteArray data_pack = pack.mid(6);
     ret.id = quint8(data_pack[0]);
     ret.function = quint8(data_pack[1]);
@@ -174,20 +174,20 @@ ModbusFrameInfo Modbus_TCP::slavePack2Frame(const QByteArray &pack)
         ret.function == ModbusReadHoldingRegisters ||
         ret.function == ModbusReadInputRegisters)
     {
-        ret.reg_addr = data_pack[2] << 8 | data_pack[3];
-        ret.quantity = data_pack[4] << 8 | data_pack[5];
+        ret.reg_addr = quint16(data_pack[2]) << 8 | quint8(data_pack[3]);
+        ret.quantity = quint16(data_pack[4]) << 8 | quint8(data_pack[5]);
     }
     else if(ret.function == ModbusWriteSingleCoil ||
              ret.function == ModbusWriteSingleRegister)
     {
-        ret.reg_addr = data_pack[2] << 8 | data_pack[3];
+        ret.reg_addr = quint16(data_pack[2]) << 8 | quint8(data_pack[3]);
         ret.quantity = 1;
-        ret.reg_values[0] = data_pack[4] << 8 | quint8(data_pack[5]);
+        ret.reg_values[0] = quint16(data_pack[4]) << 8 | quint8(data_pack[5]);
     }
     else if(ret.function == ModbusWriteMultipleCoils)
     {
-        ret.reg_addr = data_pack[2] << 8 | data_pack[3];
-        ret.quantity = data_pack[4] << 8 | data_pack[5];
+        ret.reg_addr = quint16(data_pack[2]) << 8 | quint8(data_pack[3]);
+        ret.quantity = quint16(data_pack[4]) << 8 | quint8(data_pack[5]);
         int byte_num =  quint8(data_pack[6]);
         unsigned char *coils = (unsigned char *)ret.reg_values;
         for(int i = 0;i < byte_num;++i)
@@ -197,9 +197,9 @@ ModbusFrameInfo Modbus_TCP::slavePack2Frame(const QByteArray &pack)
     }
     else if(ret.function == ModbusWriteMultipleRegisters)
     {
-        ret.reg_addr = data_pack[2] << 8 | data_pack[3];
-        ret.quantity = data_pack[4] << 8 | data_pack[5];
-        for(int i = 0;i < ret.quantity; i+= 2)
+        ret.reg_addr = quint16(data_pack[2]) << 8 | quint8(data_pack[3]);
+        ret.quantity = quint16(data_pack[4]) << 8 | quint8(data_pack[5]);
+        for(int i = 0;i < ret.quantity; ++i)
         {
             ret.reg_values[i] = quint16(data_pack[7 + 2 * i]) << 8 | quint8(data_pack[8 + 2 * i]);
         }
@@ -209,7 +209,7 @@ ModbusFrameInfo Modbus_TCP::slavePack2Frame(const QByteArray &pack)
 
 bool Modbus_TCP::validPack(const QByteArray &pack)
 {
-    quint16 data_pack_size = pack[4] << 8 | pack[5];
+    quint16 data_pack_size = quint16(pack[4]) << 8 | quint8(pack[5]);
     return data_pack_size == pack.size() - 6;
 }
 

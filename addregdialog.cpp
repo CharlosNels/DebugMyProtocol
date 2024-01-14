@@ -33,6 +33,7 @@ AddRegDialog::AddRegDialog(bool is_master, int protocol, QWidget *parent)
     if(is_master)
     {
         ui->box_function->addItems(modbus_function_map.keys());
+        ui->box_quantity->setMaximum(125);
     }
     else
     {
@@ -41,6 +42,7 @@ AddRegDialog::AddRegDialog(bool is_master, int protocol, QWidget *parent)
         ui->label_scan_rate->hide();
         ui->label_scan_rate_unit->hide();
         ui->label_request->hide();
+        ui->box_quantity->setMaximum(10000);
     }
     m_reg_def = nullptr;
 }

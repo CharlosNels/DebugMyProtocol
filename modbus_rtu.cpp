@@ -81,7 +81,7 @@ ModbusFrameInfo Modbus_RTU::masterPack2Frame(const QByteArray &pack)
     else if(ret.function == ModbusWriteMultipleCoils
         || ret.function == ModbusWriteMultipleRegisters)
     {
-        ret.quantity = quint16(pack[4]) << 8 | pack[5];
+        ret.quantity = quint16(pack[4]) << 8 | quint8(pack[5]);
     }
     else if(ret.function > ModbusFunctionError)
     {
@@ -157,20 +157,20 @@ ModbusFrameInfo Modbus_RTU::slavePack2Frame(const QByteArray &pack)
         ret.function == ModbusReadHoldingRegisters ||
         ret.function == ModbusReadInputRegisters)
     {
-        ret.reg_addr = quint16(pack[2]) << 8 | pack[3];
-        ret.quantity = quint16(pack[4]) << 8 | pack[5];
+        ret.reg_addr = quint16(pack[2]) << 8 | quint8(pack[3]);
+        ret.quantity = quint16(pack[4]) << 8 | quint8(pack[5]);
     }
     else if(ret.function == ModbusWriteSingleCoil ||
                ret.function == ModbusWriteSingleRegister)
     {
-        ret.reg_addr = quint16(pack[2]) << 8 | pack[3];
+        ret.reg_addr = quint16(pack[2]) << 8 | quint8(pack[3]);
         ret.quantity = 1;
-        ret.reg_values[0] = pack[4] << 8 | quint8(pack[5]);
+        ret.reg_values[0] = quint16(pack[4]) << 8 | quint8(pack[5]);
     }
     else if(ret.function == ModbusWriteMultipleCoils)
     {
-        ret.reg_addr = quint16(pack[2]) << 8 | pack[3];
-        ret.quantity = quint16(pack[4]) << 8 | pack[5];
+        ret.reg_addr = quint16(pack[2]) << 8 | quint8(pack[3]);
+        ret.quantity = quint16(pack[4]) << 8 | quint8(pack[5]);
         int byte_num =  quint8(pack[6]);
         quint8 *coils = (quint8 *)ret.reg_values;
         for(int i = 0;i < byte_num;++i)
@@ -180,8 +180,8 @@ ModbusFrameInfo Modbus_RTU::slavePack2Frame(const QByteArray &pack)
     }
     else if(ret.function == ModbusWriteMultipleRegisters)
     {
-        ret.reg_addr = quint16(pack[2]) << 8 | pack[3];
-        ret.quantity = quint16(pack[4]) << 8 | pack[5];
+        ret.reg_addr = quint16(pack[2]) << 8 | quint8(pack[3]);
+        ret.quantity = quint16(pack[4]) << 8 | quint8(pack[5]);
         for(int i = 0;i < ret.quantity; ++i)
         {
             ret.reg_values[i] = quint16(pack[7 + 2 * i]) << 8 | quint8(pack[8 + 2 * i]);
