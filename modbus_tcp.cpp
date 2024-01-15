@@ -8,8 +8,8 @@ QByteArray Modbus_TCP::masterFrame2Pack(const ModbusFrameInfo &frame_info)
     QByteArray ret;
     ret.append(quint8(frame_info.trans_id >> 8 & 0xFF));
     ret.append(quint8(frame_info.trans_id & 0xFF));
-    ret.append(quint8(00));
-    ret.append(quint8(00));
+    ret.append(qint8(00));
+    ret.append(qint8(00));
     QByteArray data_pack;
     data_pack.append(quint8(frame_info.id));
     data_pack.append(quint8(frame_info.function));
@@ -108,8 +108,8 @@ QByteArray Modbus_TCP::slaveFrame2Pack(const ModbusFrameInfo &frame_info)
     QByteArray ret;
     ret.append(quint8(frame_info.trans_id >> 8 & 0xFF));
     ret.append(quint8(frame_info.trans_id & 0xFF));
-    ret.append(quint8(00));
-    ret.append(quint8(00));
+    ret.append(qint8(00));
+    ret.append(qint8(00));
     QByteArray data_pack;
     data_pack.append(quint8(frame_info.id));
     data_pack.append(quint8(frame_info.function));

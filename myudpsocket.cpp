@@ -7,7 +7,8 @@ using namespace boost::asio;
 MyUdpSocket::MyUdpSocket(quint64 read_buffer_size, QObject *parent)
     : QIODevice{parent}, m_read_buffer_size(read_buffer_size)
 {
-    m_asio_socket = boost::make_shared<ip::udp::socket>(*MyTcpSocket::my_tcp_context::getTcpContext());
+    m_asio_socket = boost::make_shared<ip::udp::socket>(*MyTcpSocket::MyIOContext::getIOContext());
+    QIODevice::open(QIODevice::ReadWrite);
     m_asio_read_buf = nullptr;
     setReadBufferSize(read_buffer_size);
 }
@@ -22,8 +23,26 @@ void MyUdpSocket::setReadBufferSize(quint64 buf_size)
 bool MyUdpSocket::connectTo(QHostAddress host, quint16 port)
 {
     try{
-        m_remote_ep = ip::udp::endpoint(ip::address::from_string(host.toString().toStdString()),port);
+        m_remote_ep = ip::udp::endpoint(ip::address::from_string(host.toString().toStdString()), port);
+        m_asio_socket->open(m_remote_ep.protocol());
+        m_asio_socket->connect(m_remote_ep);
         m_asio_socket->async_receive_from(buffer(m_asio_read_buf,m_read_buffer_size), m_remote_ep, std::bind(&MyUdpSocket::asyncReceiveCallback,this,std::placeholders::_1,std::placeholders::_2));
+    }
+    catch(boost::wrapexcept<boost::system::system_error> error)
+    {
+        emit socketErrorOccurred(error.code());
+        return false;
+    }
+    return true;
+}
+
+bool MyUdpSocket::bind(const QHostAddress &address, quint16 port)
+{
+    try{
+        m_local_ep = ip::udp::endpoint(ip::address::from_string(address.toString().toStdString()), port);
+        m_asio_socket->open(m_local_ep.protocol());
+        m_asio_socket->bind(m_local_ep);
+        m_asio_socket->async_receive_from(buffer(m_asio_read_buf, m_read_buffer_size), m_remote_ep,std::bind(&MyUdpSocket::asyncReceiveCallback, this, std::placeholders::_1, std::placeholders::_2));
     }
     catch(boost::wrapexcept<boost::system::system_error> error)
     {
@@ -115,7 +134,7 @@ qint64 MyUdpSocket::skipData(qint64 maxSize)
     return skipped_num;
 }
 
-void MyUdpSocket::asyncSendCallback(const std::error_code &ec, int size)
+void MyUdpSocket::asyncSendCallback(const std::error_code &ec, size_t size)
 {
     if(ec)
     {
@@ -123,7 +142,7 @@ void MyUdpSocket::asyncSendCallback(const std::error_code &ec, int size)
     }
 }
 
-void MyUdpSocket::asyncReceiveCallback(const std::error_code &ec, int size)
+void MyUdpSocket::asyncReceiveCallback(const std::error_code &ec, size_t size)
 {
     if(ec)
     {
@@ -134,6 +153,6 @@ void MyUdpSocket::asyncReceiveCallback(const std::error_code &ec, int size)
         std::unique_lock<std::mutex> lock(m_socket_mutex);
         m_recv_buffer.append(m_asio_read_buf, size);
         emit readyRead();
-        m_asio_socket->async_receive_from(buffer(m_asio_read_buf,m_read_buffer_size), m_remote_ep, std::bind(&MyUdpSocket::asyncReceiveCallback,this,std::placeholders::_1,std::placeholders::_2));
+        m_asio_socket->async_receive_from(buffer(m_asio_read_buf, m_read_buffer_size), m_remote_ep, std::bind(&MyUdpSocket::asyncReceiveCallback,this,std::placeholders::_1,std::placeholders::_2));
     }
 }

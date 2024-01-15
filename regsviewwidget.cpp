@@ -25,7 +25,7 @@ RegsViewWidget::RegsViewWidget(ModbusRegReadDefinitions *reg_def, QWidget *paren
     ui->regs_table_view->verticalHeader()->hide();
     ui->regs_table_view->setWordWrap(false);
     m_register_values = new quint16[reg_def->quantity]{0};
-    for(int i = 0;i < reg_def->quantity;++i)
+    for(quint32 i = 0;i < reg_def->quantity;++i)
     {
         m_table_model->setItem(i, 0, new QStandardItem());
         m_table_model->setItem(i, 1, new QStandardItem());
@@ -165,7 +165,7 @@ void RegsViewWidget::setRegDef(ModbusRegReadDefinitions *reg_defines)
     delete[] m_register_values;
     m_register_values = new quint16[reg_defines->quantity]{0};
     m_cell_formats.clear();
-    for(int i = 0;i < reg_defines->quantity;++i)
+    for(quint32 i = 0;i < reg_defines->quantity;++i)
     {
         m_table_model->setItem(i, 0, new QStandardItem());
         m_table_model->setItem(i, 1, new QStandardItem());
@@ -353,7 +353,7 @@ void RegsViewWidget::selectAllActionTriggered()
 void RegsViewWidget::updateRegisterValues()
 {
     QString cell_text;
-    for(int i = 0;i < m_reg_defines->quantity; ++i)
+    for(quint32 i = 0;i < m_reg_defines->quantity; ++i)
     {
         switch(m_cell_formats[i])
         {

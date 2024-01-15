@@ -716,7 +716,6 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
         ModbusFrameInfo reply_frame{};
         reply_frame.id = frame_info.id;
         reply_frame.trans_id = frame_info.trans_id;
-        qDebug()<<reply_frame.trans_id;
         if(reg_def)
         {
             reply_frame.function = frame_info.function;

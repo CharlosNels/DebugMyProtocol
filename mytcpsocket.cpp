@@ -8,14 +8,14 @@
 
 using namespace boost::asio;
 
-io_context *MyTcpSocket::my_tcp_context::tcp_context = nullptr;
-std::thread *MyTcpSocket::my_tcp_context::tcp_thread = nullptr;
-std::mutex MyTcpSocket::my_tcp_context::tcp_mutex;
+io_context *MyTcpSocket::MyIOContext::io_context = nullptr;
+std::thread *MyTcpSocket::MyIOContext::io_thread = nullptr;
+std::mutex MyTcpSocket::MyIOContext::io_mutex;
 
 MyTcpSocket::MyTcpSocket(socket_ptr sock_ptr, quint64 read_buffer_size) : QIODevice(nullptr)
 {
     m_asio_socket  = sock_ptr;
-    m_asio_acceptor = boost::make_shared<ip::tcp::acceptor>(*my_tcp_context::getTcpContext());
+    m_asio_acceptor = boost::make_shared<ip::tcp::acceptor>(*MyIOContext::getIOContext());
     m_asio_read_buf = nullptr;
     setReadBufferSize(read_buffer_size);
     QIODevice::open(QIODevice::ReadWrite);
@@ -25,8 +25,8 @@ MyTcpSocket::MyTcpSocket(socket_ptr sock_ptr, quint64 read_buffer_size) : QIODev
 MyTcpSocket::MyTcpSocket(quint64 read_buffer_size, QObject *parent)
     : QIODevice(parent)
 {
-    m_asio_socket = boost::make_shared<ip::tcp::socket>(*my_tcp_context::getTcpContext());
-    m_asio_acceptor = boost::make_shared<ip::tcp::acceptor>(*my_tcp_context::getTcpContext());
+    m_asio_socket = boost::make_shared<ip::tcp::socket>(*MyIOContext::getIOContext());
+    m_asio_acceptor = boost::make_shared<ip::tcp::acceptor>(*MyIOContext::getIOContext());
     m_asio_read_buf = nullptr;
     setReadBufferSize(read_buffer_size);
 }
@@ -202,7 +202,7 @@ bool MyTcpSocket::bind(const QHostAddress &address, quint16 port)
         return false;
     }
     m_asio_acceptor->listen(0);
-    socket_ptr sock_(new ip::tcp::socket(*my_tcp_context::getTcpContext()));
+    socket_ptr sock_(new ip::tcp::socket(*MyIOContext::getIOContext()));
     m_asio_acceptor->async_accept(*sock_,std::bind(&MyTcpSocket::asyncAcceptCallback,this,sock_,std::placeholders::_1));
 
     return true;
@@ -296,7 +296,7 @@ void MyTcpSocket::asyncAcceptCallback(socket_ptr sock,const std::error_code &ec)
         std::unique_lock<std::mutex> lock(m_socket_mutex);
         MyTcpSocket *new_con = new MyTcpSocket(sock);
         emit newConnectionIncoming(new_con);
-        socket_ptr sock_(new ip::tcp::socket(*my_tcp_context::getTcpContext()));
+        socket_ptr sock_(new ip::tcp::socket(*MyIOContext::getIOContext()));
         m_asio_acceptor->async_accept(*sock_,std::bind(&MyTcpSocket::asyncAcceptCallback,this,sock_,std::placeholders::_1));
     }
     else
@@ -305,17 +305,17 @@ void MyTcpSocket::asyncAcceptCallback(socket_ptr sock,const std::error_code &ec)
     }
 }
 
-boost::asio::io_context *MyTcpSocket::my_tcp_context::getTcpContext()
+boost::asio::io_context *MyTcpSocket::MyIOContext::getIOContext()
 {
-    if(tcp_context == nullptr)
+    if(io_context == nullptr)
     {
-        tcp_mutex.lock();
-        tcp_context = new io_context();
-        tcp_thread = new std::thread([](){
-            io_context::work worker(*tcp_context);
-            tcp_context->run();
+        io_mutex.lock();
+        io_context = new boost::asio::io_context();
+        io_thread = new std::thread([](){
+            io_context::work worker(*io_context);
+            io_context->run();
         });
-        tcp_mutex.unlock();
+        io_mutex.unlock();
     }
-    return tcp_context;
+    return io_context;
 }

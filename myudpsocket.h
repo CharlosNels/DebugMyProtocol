@@ -18,6 +18,7 @@ public:
     explicit MyUdpSocket(quint64 read_buffer_size = 1024 * 1024, QObject *parent = nullptr);
     void setReadBufferSize(quint64 buf_size);
     bool connectTo(QHostAddress host, quint16 port);
+    bool bind(const QHostAddress &address, quint16 port);
 
 signals:
     void socketErrorOccurred(const std::error_code &ec);
@@ -36,8 +37,8 @@ protected:
     qint64 skipData(qint64 maxSize) override;
 
 private:
-    void asyncSendCallback(const std::error_code &ec, int size);
-    void asyncReceiveCallback(const std::error_code &ec, int size);
+    void asyncSendCallback(const std::error_code &ec, size_t size);
+    void asyncReceiveCallback(const std::error_code &ec, size_t size);
 
 protected:
     socket_ptr m_asio_socket;
@@ -45,6 +46,7 @@ protected:
     std::mutex m_socket_mutex;
     char *m_asio_read_buf;
     quint64 m_read_buffer_size;
+    boost::asio::ip::udp::endpoint m_local_ep;
     boost::asio::ip::udp::endpoint m_remote_ep;
 };
 

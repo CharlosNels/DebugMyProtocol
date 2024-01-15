@@ -72,15 +72,15 @@ protected:
     char *m_asio_read_buf;
     quint64 m_read_buffer_size;
 private:
-    class my_tcp_context
+    class MyIOContext
     {
     private:
-        my_tcp_context(){}
-        static boost::asio::io_context *tcp_context;
-        static std::thread *tcp_thread;
-        static std::mutex tcp_mutex;
+        MyIOContext(){}
+        static boost::asio::io_context *io_context;
+        static std::thread *io_thread;
+        static std::mutex io_mutex;
     public:
-        static boost::asio::io_context *getTcpContext();
+        static boost::asio::io_context *getIOContext();
     };
 };
 

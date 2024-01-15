@@ -9,7 +9,6 @@
 #include <QMessageBox>
 #include "modbuswidget.h"
 #include "addregdialog.h"
-#include "mytcpsocket.h"
 
 
 MainWindow::MainWindow(QWidget *parent)

@@ -4,6 +4,7 @@
 #include <QNetworkInterface>
 #include <QSerialPortInfo>
 #include <QMainWindow>
+#include <QDebug>
 #include "floatbox.h"
 #include "mytcpsocket.h"
 #include "myudpsocket.h"
@@ -56,7 +57,8 @@ const QMap<QString, QList<QString> > OpenRouteDialog::protocol_map = {
 const QMap<QString, int> OpenRouteDialog::protocol_enum_map = {
     {"Modbus-RTU", MODBUS_RTU},
     {"Modbus-ASCII", MODBUS_ASCII},
-    {"Modbus-TCP", MODBUS_TCP}
+    {"Modbus-TCP", MODBUS_TCP},
+    {"Modbus-UDP", MODBUS_UDP}
 };
 
 OpenRouteDialog::OpenRouteDialog(QWidget *parent)
@@ -126,7 +128,7 @@ void OpenRouteDialog::clientConnectFinished(bool connected)
 
 void OpenRouteDialog::socketErrorOccurred(const std::error_code &ec)
 {
-    FloatBox::message(QString::fromStdString(ec.message()),3000,m_parent_window->geometry());
+    FloatBox::message(QString("%1 %2").arg(ec.value()).arg(QString::fromStdString(ec.message())), 3000, m_parent_window->geometry());
 }
 
 void OpenRouteDialog::newTcpConnectionIncoming(MyTcpSocket *sock_ptr)
@@ -259,14 +261,30 @@ void OpenRouteDialog::on_button_connect_udp_clicked()
 {
     MyUdpSocket *udp_socket = new MyUdpSocket();
     connect(udp_socket, &MyUdpSocket::socketErrorOccurred, this, &OpenRouteDialog::socketErrorOccurred);
-    if(udp_socket->connectTo(QHostAddress(ui->edit_udp_remote_server_addr->text()), ui->box_udp_remote_server_port->value()))
+    if(ui->box_identity_udp->currentText() == tr("Master"))
     {
-        emit createdRoute(udp_socket, QString("%1:%2 - %3").arg(ui->edit_udp_remote_server_addr->text()).arg(ui->box_udp_remote_server_port->value()).arg(ui->box_udp_protocol->currentText()), protocol_enum_map[ui->box_udp_protocol->currentText()], ui->box_identity_udp->currentText() == tr("Master"));
-        hide();
+        if(udp_socket->connectTo(QHostAddress(ui->edit_udp_remote_server_addr->text()), ui->box_udp_remote_server_port->value()))
+        {
+            emit createdRoute(udp_socket, QString("%1:%2 - %3").arg(ui->edit_udp_remote_server_addr->text()).arg(ui->box_udp_remote_server_port->value()).arg(ui->box_udp_protocol->currentText()), protocol_enum_map[ui->box_udp_protocol->currentText()], ui->box_identity_udp->currentText() == tr("Master"));
+            hide();
+        }
+        else
+        {
+            udp_socket->deleteLater();
+        }
     }
     else
     {
-        udp_socket->deleteLater();
+        if(udp_socket->bind(QHostAddress(ui->edit_udp_remote_server_addr->text()), ui->box_udp_remote_server_port->value()))
+        {
+            emit createdRoute(udp_socket, QString("%1:%2 - %3").arg(ui->edit_udp_remote_server_addr->text()).arg(ui->box_udp_remote_server_port->value()).arg(ui->box_udp_protocol->currentText()), protocol_enum_map[ui->box_udp_protocol->currentText()], ui->box_identity_udp->currentText() == tr("Master"));
+            hide();
+        }
+        else
+        {
+            udp_socket->deleteLater();
+        }
     }
+
 }
 
