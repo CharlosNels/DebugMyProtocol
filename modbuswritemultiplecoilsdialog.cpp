@@ -87,7 +87,7 @@ void ModbusWriteMultipleCoilsDialog::on_button_clear_all_clicked()
 {
     for(auto x:m_coils_list)
     {
-        x->setChecked(true);
+        x->setChecked(false);
     }
 }
 
@@ -102,8 +102,8 @@ void ModbusWriteMultipleCoilsDialog::on_button_send_clicked()
     quint8 *coils = (quint8*)frame_info.reg_values;
     for(int i  = 0;i < frame_info.quantity;++i)
     {
-        int byte_index = i / 16;
-        int bit_index = i % 16;
+        int byte_index = i / 8;
+        int bit_index = i % 8;
         setBit(coils[byte_index],bit_index, m_coils_list[i]->isChecked());
     }
     QByteArray write_pack{};
@@ -146,6 +146,15 @@ void ModbusWriteMultipleCoilsDialog::on_box_quantity_valueChanged(int arg1)
     for(auto x:m_coils_list)
     {
         x->setDisabled(true);
+    }
+}
+
+
+void ModbusWriteMultipleCoilsDialog::on_button_reverse_all_clicked()
+{
+    for(auto x:m_coils_list)
+    {
+        x->setChecked(!x->isChecked());
     }
 }
 

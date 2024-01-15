@@ -118,7 +118,7 @@ QByteArray Modbus_TCP::slaveFrame2Pack(const ModbusFrameInfo &frame_info)
     {
         quint8 byte_num = quint8(pageConvert(frame_info.quantity, 8));
         unsigned char const *coils = (unsigned char const *)frame_info.reg_values;
-        ret.append(byte_num);
+        data_pack.append(byte_num);
         for(int i = 0; i < byte_num; ++i)
         {
             data_pack.append(coils[i]);

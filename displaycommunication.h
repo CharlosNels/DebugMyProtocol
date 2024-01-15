@@ -31,6 +31,7 @@ private slots:
 private:
     Ui::DisplayCommunication *ui;
     bool m_is_recording;
+    QBrush m_origin_text_brush;
 };
 
 #endif // DISPLAYCOMMUNICATION_H

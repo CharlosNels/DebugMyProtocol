@@ -16,6 +16,7 @@ DisplayCommunication::DisplayCommunication(QWidget *parent)
     setModal(false);
     setWindowFlag(Qt::WindowStaysOnTopHint);
     m_is_recording = true;
+    m_origin_text_brush = ui->text_traffic->currentCharFormat().foreground();
     hide();
 }
 
@@ -28,6 +29,9 @@ void DisplayCommunication::appendPacket(const QString &packet, bool is_error)
 {
     if(m_is_recording)
     {
+        QTextCharFormat txt_fmt = ui->text_traffic->currentCharFormat();
+        txt_fmt.setForeground(is_error ? Qt::red : m_origin_text_brush);
+        ui->text_traffic->mergeCurrentCharFormat(txt_fmt);
         if(ui->box_timestamp->isChecked())
         {
             ui->text_traffic->appendPlainText(QString("%1 %2\n").arg(QDateTime::currentDateTime().toString("hh:mm:ss:zzz"),packet));

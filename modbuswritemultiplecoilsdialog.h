@@ -34,6 +34,8 @@ private slots:
 
     void on_box_quantity_valueChanged(int arg1);
 
+    void on_button_reverse_all_clicked();
+
 private:
     Ui::ModbusWriteMultipleCoilsDialog *ui;
     QList<QCheckBox*> m_coils_list;

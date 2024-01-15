@@ -281,6 +281,7 @@ void ModbusWidget::actionSetRecvTimeoutTriggered()
 
 void ModbusWidget::actionDisplayTrafficTriggered()
 {
+    m_traffic_displayer->setWindowTitle(QString("Communication Traffic - %1").arg(windowTitle()));
     m_traffic_displayer->show();
 }
 
@@ -746,9 +747,12 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
             }
             else if(frame_info.function == ModbusWriteMultipleCoils)
             {
+                quint8 *coils = (quint8*)frame_info.reg_values;
                 for(int i = 0;i < frame_info.quantity;++i)
                 {
-                    regs_view_widget->setCoilValue(frame_info.reg_addr + i, getBit(frame_info.reg_values[i / 16], i % 16));
+                    int byte_index = i / 8;
+                    int bit_index = i % 8;
+                    regs_view_widget->setCoilValue(frame_info.reg_addr + i, getBit(coils[byte_index], bit_index));
                 }
             }
             else if(frame_info.function == ModbusWriteSingleRegister)
