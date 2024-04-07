@@ -135,6 +135,7 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, in
 ModbusWidget::~ModbusWidget()
 {
     delete ui;
+    delete m_modbus;
 }
 
 void ModbusWidget::RegsViewWidgetClosed(ModbusRegReadDefinitions *reg_defines)
