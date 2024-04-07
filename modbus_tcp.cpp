@@ -213,6 +213,5 @@ bool Modbus_TCP::validPack(const QByteArray &pack)
     return data_pack_size == pack.size() - 6;
 }
 
-Modbus_TCP::Modbus_TCP(QObject *parent)
-    : QObject{parent}
+Modbus_TCP::Modbus_TCP()
 {}

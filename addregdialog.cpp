@@ -24,9 +24,9 @@ const QMap<QString,quint8> AddRegDialog::modbus_slave_function_map = {
     {"04 Input Registers (3x)", ModbusInputRegisters}
 };
 
-AddRegDialog::AddRegDialog(bool is_master, int protocol, QWidget *parent)
+AddRegDialog::AddRegDialog(bool is_master, ModbusBase *modbus, QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::AddRegDialog), m_protocol(protocol), m_is_master(is_master)
+    , ui(new Ui::AddRegDialog), m_modbus(modbus), m_is_master(is_master)
 {
     ui->setupUi(this);
     setWindowModality(Qt::WindowModal);
@@ -48,8 +48,8 @@ AddRegDialog::AddRegDialog(bool is_master, int protocol, QWidget *parent)
 }
 
 
-AddRegDialog::AddRegDialog(bool is_master, int protocol, ModbusRegReadDefinitions *reg_def, QWidget *parent)
-    :AddRegDialog(is_master, protocol, parent)
+AddRegDialog::AddRegDialog(bool is_master, ModbusBase *modbus, ModbusRegReadDefinitions *reg_def, QWidget *parent)
+    :AddRegDialog(is_master, modbus, parent)
 {
     m_reg_def = reg_def;
     ui->box_function->setCurrentText(getKeyByValue(is_master ? modbus_function_map:modbus_slave_function_map,reg_def->function));
@@ -107,29 +107,7 @@ void AddRegDialog::generateRequest()
     frame_info.function = modbus_function_map[ui->box_function->currentText()];
     frame_info.reg_addr = ui->box_addr->value();
     frame_info.quantity = ui->box_quantity->value();
-    switch(m_protocol)
-    {
-    case MODBUS_RTU:
-    {
-        m_request_bytes = Modbus_RTU::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_ASCII:
-    {
-        m_request_bytes = Modbus_ASCII::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_UDP:
-    case MODBUS_TCP:
-    {
-        m_request_bytes = Modbus_TCP::masterFrame2Pack(frame_info);
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
+    m_request_bytes = m_modbus->masterFrame2Pack(frame_info);
     ui->label_request->setText(QString("%1 : %2").arg(tr("Request"),m_request_bytes.toHex(' ').toUpper()));
 }
 

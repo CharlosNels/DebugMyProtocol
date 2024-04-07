@@ -195,6 +195,5 @@ bool Modbus_RTU::validPack(const QByteArray &pack)
     return CRC_16(pack,pack.size()) == 0;
 }
 
-Modbus_RTU::Modbus_RTU(QObject *parent)
-    : QObject{parent}
+Modbus_RTU::Modbus_RTU()
 {}

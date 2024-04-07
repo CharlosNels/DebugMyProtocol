@@ -53,9 +53,9 @@ const QMap<ModbusErrorCode, QString> ModbusWidget::modbus_error_code_comment_map
     {ModbusErrorCode_Gateway_Target_Device_Failed_To_Respond, tr("The slave is not present on the network.")}
 };
 
-ModbusWidget::ModbusWidget(bool is_master, QIODevice *com, int protocol, QWidget *parent)
+ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, int protocol, QWidget *parent)
     : ProtocolWidget(com, protocol, parent)
-    , ui(new Ui::ModbusWidget), m_is_master(is_master), m_function05_dialog(nullptr)
+    , ui(new Ui::ModbusWidget), m_modbus(modbus), m_is_master(is_master), m_function05_dialog(nullptr)
     , m_function06_dialog(nullptr), m_function15_dialog(nullptr), m_function16_dialog(nullptr)
     , m_trans_id(0)
 {
@@ -153,25 +153,7 @@ void ModbusWidget::writeFunctionTriggered(QByteArray pack)
 void ModbusWidget::writeFrameTriggered(const ModbusFrameInfo &frame_info)
 {
     QByteArray write_pack{};
-    switch(m_protocol)
-    {
-    case MODBUS_RTU:
-    {
-        write_pack = Modbus_RTU::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_ASCII:
-    {
-        write_pack = Modbus_ASCII::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_TCP:
-    case MODBUS_UDP:
-    {
-        write_pack = Modbus_TCP::masterFrame2Pack(frame_info);
-        break;
-    }
-    }
+    write_pack = m_modbus->masterFrame2Pack(frame_info);
     m_manual_list.append(write_pack);
 }
 
@@ -179,7 +161,7 @@ void ModbusWidget::actionFunction05Triggered()
 {
     if(!m_function05_dialog)
     {
-        m_function05_dialog = new ModbusWriteSingleCoilDialog(m_protocol, this);
+        m_function05_dialog = new ModbusWriteSingleCoilDialog(m_modbus, this);
         connect(m_function05_dialog, &ModbusWriteSingleCoilDialog::writeFunctionTriggered, this, &ModbusWidget::writeFunctionTriggered);
         connect(this, &ModbusWidget::writeFunctionResponsed, m_function05_dialog, &ModbusWriteSingleCoilDialog::responseSlot);
         m_function05_dialog->show();
@@ -194,7 +176,7 @@ void ModbusWidget::actionFunction06Triggered()
 {
     if(!m_function06_dialog)
     {
-        m_function06_dialog = new ModbusWriteSingleRegisterDialog(m_protocol, this);
+        m_function06_dialog = new ModbusWriteSingleRegisterDialog(m_modbus, this);
         connect(m_function06_dialog, &ModbusWriteSingleRegisterDialog::writeFunctionTriggered, this, &ModbusWidget::writeFunctionTriggered);
         connect(this, &ModbusWidget::writeFunctionResponsed, m_function06_dialog, &ModbusWriteSingleRegisterDialog::responseSlot);
         m_function06_dialog->show();
@@ -209,7 +191,7 @@ void ModbusWidget::actionFunction15Triggered()
 {
     if(!m_function15_dialog)
     {
-        m_function15_dialog = new ModbusWriteMultipleCoilsDialog(m_protocol, this);
+        m_function15_dialog = new ModbusWriteMultipleCoilsDialog(m_modbus, this);
         connect(m_function15_dialog, &ModbusWriteMultipleCoilsDialog::writeFunctionTriggered, this, &ModbusWidget::writeFunctionTriggered);
         connect(this, &ModbusWidget::writeFunctionResponsed, m_function15_dialog, &ModbusWriteMultipleCoilsDialog::responseSlot);
         m_function15_dialog->show();
@@ -224,7 +206,7 @@ void ModbusWidget::actionFunction16Triggered()
 {
     if(!m_function16_dialog)
     {
-        m_function16_dialog = new ModbusWriteMultipleRegistersDialog(m_protocol, this);
+        m_function16_dialog = new ModbusWriteMultipleRegistersDialog(m_modbus, this);
         connect(m_function16_dialog, &ModbusWriteMultipleRegistersDialog::writeFunctionTriggered, this, &ModbusWidget::writeFunctionTriggered);
         connect(this, &ModbusWidget::writeFunctionResponsed, m_function16_dialog, &ModbusWriteMultipleRegistersDialog::responseSlot);
         m_function16_dialog->show();
@@ -248,7 +230,7 @@ void ModbusWidget::actionModifyRegDefTriggered()
         ModbusRegReadDefinitions *reg_def = getKeyByValue(m_reg_def_widget_map, regs_view_widget);
         if(reg_def)
         {
-            AddRegDialog *modify_reg_dialog = new AddRegDialog(m_is_master, m_protocol, reg_def, this);
+            AddRegDialog *modify_reg_dialog = new AddRegDialog(m_is_master, m_modbus, reg_def, this);
             connect(modify_reg_dialog, &AddRegDialog::readDefinitionsModified, this, std::bind(&ModbusWidget::modifyReadDefFinished, this, regs_view_widget, reg_def, std::placeholders::_1));
             modify_reg_dialog->show();
         }
@@ -257,7 +239,7 @@ void ModbusWidget::actionModifyRegDefTriggered()
 
 void ModbusWidget::actionAddRegTriggered()
 {
-    AddRegDialog *add_reg_dialog = new AddRegDialog(m_is_master, m_protocol, this);
+    AddRegDialog *add_reg_dialog = new AddRegDialog(m_is_master, m_modbus, this);
     connect(add_reg_dialog, &AddRegDialog::readDefinitionsCreated, this, &ModbusWidget::regDefinitionsCreated);
     add_reg_dialog->show();
 }
@@ -392,7 +374,7 @@ void ModbusWidget::recvTimerTimeoutSlot()
         m_cycle_list.removeFirst();
         regs_view_widget = m_cycle_widget_list.takeFirst();
     }
-    m_master_last_send_frame = Modbus_RTU::slavePack2Frame(m_master_last_send_pack);
+    m_master_last_send_frame = m_modbus->slavePack2Frame(m_master_last_send_pack);
     if(m_master_last_send_frame.function == ModbusWriteSingleCoil ||
         m_master_last_send_frame.function == ModbusWriteMultipleCoils ||
         m_master_last_send_frame.function == ModbusWriteSingleRegister ||
@@ -422,46 +404,11 @@ void ModbusWidget::comMasterReadyReadSlot()
     m_recv_buffer.append(m_com->readAll());
     bool is_intact {false};
     ModbusFrameInfo frame_info{};
-    switch(m_protocol)
-    {
-    case MODBUS_RTU:
-    {
-        is_intact = Modbus_RTU::validPack(m_recv_buffer);
-        if(is_intact)
-        {
-            frame_info = Modbus_RTU::masterPack2Frame(m_recv_buffer);
-            m_master_last_send_frame = Modbus_RTU::slavePack2Frame(m_master_last_send_pack);
-        }
-        break;
-    }
-    case MODBUS_ASCII:
-    {
-        is_intact = Modbus_ASCII::validPack(m_recv_buffer);
-        if(is_intact)
-        {
-            frame_info = Modbus_ASCII::masterPack2Frame(m_recv_buffer);
-            m_master_last_send_frame = Modbus_ASCII::slavePack2Frame(m_master_last_send_pack);
-        }
-        break;
-    }
-    case MODBUS_TCP:
-    case MODBUS_UDP:
-    {
-        is_intact = Modbus_TCP::validPack(m_recv_buffer);
-        if(is_intact)
-        {
-            frame_info = Modbus_TCP::masterPack2Frame(m_recv_buffer);
-            m_master_last_send_frame = Modbus_TCP::slavePack2Frame(m_master_last_send_pack);
-        }
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
+    is_intact = m_modbus->validPack(m_recv_buffer);
     if(is_intact)
     {
+        frame_info = m_modbus->masterPack2Frame(m_recv_buffer);
+        m_master_last_send_frame = m_modbus->slavePack2Frame(m_master_last_send_pack);
 #if PRINT_TRAFFIC
         qDebug()<<"Master Recv: "<<m_recv_buffer.toHex(' ').toUpper();
 #endif
@@ -490,43 +437,10 @@ void ModbusWidget::comSlaveReadyReadSlot()
 
     bool is_intact {false};
     ModbusFrameInfo frame_info{};
-    switch(m_protocol)
-    {
-    case MODBUS_RTU:
-    {
-        is_intact = Modbus_RTU::validPack(m_recv_buffer);
-        if(is_intact)
-        {
-            frame_info = Modbus_RTU::slavePack2Frame(m_recv_buffer);
-        }
-        break;
-    }
-    case MODBUS_ASCII:
-    {
-        is_intact = Modbus_ASCII::validPack(m_recv_buffer);
-        if(is_intact)
-        {
-            frame_info = Modbus_ASCII::slavePack2Frame(m_recv_buffer);
-        }
-        break;
-    }
-    case MODBUS_TCP:
-    case MODBUS_UDP:
-    {
-        is_intact = Modbus_TCP::validPack(m_recv_buffer);
-        if(is_intact)
-        {
-            frame_info = Modbus_TCP::slavePack2Frame(m_recv_buffer);
-        }
-        break;
-    }
-    default:
-    {
-        break;
-    }
-    }
+    is_intact = m_modbus->validPack(m_recv_buffer);
     if(is_intact)
     {
+        frame_info = m_modbus->slavePack2Frame(m_recv_buffer);
 #if PRINT_TRAFFIC
         qDebug()<<"Slave Recv: "<<m_recv_buffer.toHex(' ').toUpper();
 #endif
@@ -771,27 +685,7 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
             reply_frame.reg_values[0] = error_code;
         }
         QByteArray reply_pack;
-        switch(m_protocol)
-        {
-        case MODBUS_RTU:
-        {
-            reply_pack = Modbus_RTU::slaveFrame2Pack(reply_frame);
-            break;
-        }
-        case MODBUS_ASCII:
-        {
-            reply_pack = Modbus_ASCII::slaveFrame2Pack(reply_frame);
-            break;
-        }
-        case MODBUS_TCP:
-        case MODBUS_UDP:
-        {
-            reply_pack = Modbus_TCP::slaveFrame2Pack(reply_frame);
-            break;
-        }
-        default:
-            break;
-        }
+        reply_pack = m_modbus->slaveFrame2Pack(reply_frame);
 #if PRINT_TRAFFIC
         qDebug()<<"Slave Send: "<<reply_pack.toHex(' ').toUpper();
 #endif

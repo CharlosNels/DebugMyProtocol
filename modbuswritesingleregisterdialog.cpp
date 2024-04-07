@@ -1,15 +1,12 @@
 #include "modbuswritesingleregisterdialog.h"
 #include "ui_modbuswritesingleregisterdialog.h"
-#include "modbus_rtu.h"
-#include "modbus_ascii.h"
-#include "modbus_tcp.h"
 #include "openroutedialog.h"
 #include "modbuswidget.h"
 #include <QMessageBox>
 
-ModbusWriteSingleRegisterDialog::ModbusWriteSingleRegisterDialog(int protocol, QWidget *parent)
+ModbusWriteSingleRegisterDialog::ModbusWriteSingleRegisterDialog(ModbusBase *modbus, QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::ModbusWriteSingleRegisterDialog), m_protocol(protocol)
+    , ui(new Ui::ModbusWriteSingleRegisterDialog), m_modbus(modbus)
 {
     ui->setupUi(this);
     setWindowModality(Qt::WindowModal);
@@ -62,27 +59,7 @@ void ModbusWriteSingleRegisterDialog::generatePack()
     frame_info.reg_values[0] = ui->box_reg_value->value();
     frame_info.quantity = 1;
     frame_info.function = ui->button_06_function->isChecked() ? ModbusWriteSingleRegister : ModbusWriteMultipleRegisters;
-    switch(m_protocol)
-    {
-    case MODBUS_RTU:
-    {
-        m_write_pack = Modbus_RTU::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_ASCII:
-    {
-        m_write_pack = Modbus_ASCII::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_TCP:
-    case MODBUS_UDP:
-    {
-        m_write_pack = Modbus_TCP::masterFrame2Pack(frame_info);
-        break;
-    }
-    default:
-        return;
-    }
+    m_write_pack = m_modbus->masterFrame2Pack(frame_info);
     ui->label_request->setText(m_write_pack.toHex(' ').toUpper());
 }
 

@@ -48,6 +48,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         modbuswritemultiplecoilsdialog.h modbuswritemultiplecoilsdialog.cpp modbuswritemultiplecoilsdialog.ui
         modbuswritemultipleregistersdialog.h modbuswritemultipleregistersdialog.cpp modbuswritemultipleregistersdialog.ui
         errorcounterdialog.h errorcounterdialog.cpp errorcounterdialog.ui
+        ModbusBase.h
 
     )
 # Define target properties for Android with Qt 6 as:

@@ -199,6 +199,5 @@ bool Modbus_ASCII::validPack(const QByteArray &pack)
     return pack.startsWith(pack_start_character) && pack.endsWith(pack_terminator) && (LRC(hex_pack, hex_pack.size()) == 0);
 }
 
-Modbus_ASCII::Modbus_ASCII(QObject *parent)
-    : QObject{parent}
+Modbus_ASCII::Modbus_ASCII()
 {}

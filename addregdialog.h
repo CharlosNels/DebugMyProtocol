@@ -4,6 +4,7 @@
 #include <QDialog>
 #include <QMap>
 #include <QByteArray>
+#include "ModbusBase.h"
 
 namespace Ui {
 class AddRegDialog;
@@ -27,8 +28,8 @@ class AddRegDialog : public QDialog
 public:
     static const QMap<QString,quint8> modbus_function_map;
     static const QMap<QString,quint8> modbus_slave_function_map;
-    explicit AddRegDialog(bool is_master, int protocol, QWidget *parent = nullptr);
-    explicit AddRegDialog(bool is_master, int protocol, ModbusRegReadDefinitions *reg_def, QWidget *parent = nullptr);
+    explicit AddRegDialog(bool is_master, ModbusBase *modbus, QWidget *parent = nullptr);
+    explicit AddRegDialog(bool is_master, ModbusBase *modbus, ModbusRegReadDefinitions *reg_def, QWidget *parent = nullptr);
     ~AddRegDialog();
 
 signals:
@@ -54,8 +55,8 @@ private:
 private:
     Ui::AddRegDialog *ui;
     ModbusRegReadDefinitions *m_reg_def;
+    ModbusBase *m_modbus;
     QByteArray m_request_bytes;
-    int m_protocol;
     bool m_is_master;
 };
 

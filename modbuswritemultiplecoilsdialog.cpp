@@ -3,16 +3,13 @@
 #include <QCheckBox>
 #include <QListWidgetItem>
 #include <QMessageBox>
-#include "modbus_rtu.h"
-#include "modbus_ascii.h"
-#include "modbus_tcp.h"
 #include "openroutedialog.h"
 #include "modbuswidget.h"
 #include "utils.h"
 
-ModbusWriteMultipleCoilsDialog::ModbusWriteMultipleCoilsDialog(int protocol, QWidget *parent)
+ModbusWriteMultipleCoilsDialog::ModbusWriteMultipleCoilsDialog(ModbusBase *modbus, QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::ModbusWriteMultipleCoilsDialog), m_protocol(protocol)
+    , ui(new Ui::ModbusWriteMultipleCoilsDialog), m_modbus(modbus)
 {
     ui->setupUi(this);
     on_button_update_coil_list_clicked();
@@ -107,27 +104,7 @@ void ModbusWriteMultipleCoilsDialog::on_button_send_clicked()
         setBit(coils[byte_index],bit_index, m_coils_list[i]->isChecked());
     }
     QByteArray write_pack{};
-    switch(m_protocol)
-    {
-    case MODBUS_RTU:
-    {
-        write_pack = Modbus_RTU::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_ASCII:
-    {
-        write_pack = Modbus_ASCII::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_TCP:
-    case MODBUS_UDP:
-    {
-        write_pack = Modbus_TCP::masterFrame2Pack(frame_info);
-        break;
-    }
-    default:
-        break;
-    }
+    write_pack = m_modbus->masterFrame2Pack(frame_info);
     emit writeFunctionTriggered(write_pack);
 }
 

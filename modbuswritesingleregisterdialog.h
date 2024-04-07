@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QByteArray>
+#include "ModbusBase.h"
 
 namespace Ui {
 class ModbusWriteSingleRegisterDialog;
@@ -13,7 +14,7 @@ class ModbusWriteSingleRegisterDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ModbusWriteSingleRegisterDialog(int protocol, QWidget *parent = nullptr);
+    explicit ModbusWriteSingleRegisterDialog(ModbusBase *modbus, QWidget *parent = nullptr);
     ~ModbusWriteSingleRegisterDialog();
 
 signals:
@@ -41,7 +42,7 @@ private:
 private:
     Ui::ModbusWriteSingleRegisterDialog *ui;
     QByteArray m_write_pack;
-    int m_protocol;
+    ModbusBase *m_modbus;
 };
 
 #endif // MODBUSWRITESINGLEREGISTERDIALOG_H

@@ -2,6 +2,7 @@
 #define MODBUSWRITEMULTIPLECOILSDIALOG_H
 
 #include <QDialog>
+#include "ModbusBase.h"
 
 class QCheckBox;
 
@@ -14,7 +15,7 @@ class ModbusWriteMultipleCoilsDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ModbusWriteMultipleCoilsDialog(int protocol, QWidget *parent = nullptr);
+    explicit ModbusWriteMultipleCoilsDialog(ModbusBase *modbus, QWidget *parent = nullptr);
     ~ModbusWriteMultipleCoilsDialog();
 signals:
     void writeFunctionTriggered(QByteArray pack);
@@ -39,7 +40,7 @@ private slots:
 private:
     Ui::ModbusWriteMultipleCoilsDialog *ui;
     QList<QCheckBox*> m_coils_list;
-    int m_protocol;
+    ModbusBase *m_modbus;
 };
 
 #endif // MODBUSWRITEMULTIPLECOILSDIALOG_H

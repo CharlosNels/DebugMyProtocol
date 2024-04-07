@@ -2,9 +2,6 @@
 #include "ui_modbuswritemultipleregistersdialog.h"
 #include "regsviewwidget.h"
 #include "utils.h"
-#include "modbus_rtu.h"
-#include "modbus_ascii.h"
-#include "modbus_tcp.h"
 #include "openroutedialog.h"
 #include "modbuswidget.h"
 #include <QMessageBox>
@@ -44,9 +41,9 @@ const QMap<QString, int> ModbusWriteMultipleRegistersDialog::format_map = {
     {tr("Double Little-endian byte swap"), CellFormat::Format_64_Bit_Float_Little_Endian_Byte_Swap}
 };
 
-ModbusWriteMultipleRegistersDialog::ModbusWriteMultipleRegistersDialog(int protocol, QWidget *parent)
+ModbusWriteMultipleRegistersDialog::ModbusWriteMultipleRegistersDialog(ModbusBase *modbus, QWidget *parent)
     : QDialog(parent)
-    , ui(new Ui::ModbusWriteMultipleRegistersDialog), m_protocol(protocol)
+    , ui(new Ui::ModbusWriteMultipleRegistersDialog), m_modbus(modbus)
 {
     ui->setupUi(this);
     setWindowModality(Qt::WindowModal);
@@ -537,25 +534,7 @@ void ModbusWriteMultipleRegistersDialog::on_button_send_clicked()
     {
         frame_info.reg_values[i] = m_reg_values[i];
     }
-    switch(m_protocol)
-    {
-    case MODBUS_RTU:
-    {
-        write_pack = Modbus_RTU::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_ASCII:
-    {
-        write_pack = Modbus_ASCII::masterFrame2Pack(frame_info);
-        break;
-    }
-    case MODBUS_TCP:
-    case MODBUS_UDP:
-    {
-        write_pack = Modbus_TCP::masterFrame2Pack(frame_info);
-        break;
-    }
-    }
+    write_pack = m_modbus->masterFrame2Pack(frame_info);
     emit writeFunctionTriggered(write_pack);
 }
 

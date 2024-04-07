@@ -2,6 +2,7 @@
 #define MODBUSWRITEMULTIPLEREGISTERSDIALOG_H
 
 #include <QDialog>
+#include "ModbusBase.h"
 
 namespace Ui {
 class ModbusWriteMultipleRegistersDialog;
@@ -14,7 +15,7 @@ class ModbusWriteMultipleRegistersDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ModbusWriteMultipleRegistersDialog(int protocol, QWidget *parent = nullptr);
+    explicit ModbusWriteMultipleRegistersDialog(ModbusBase *modbus, QWidget *parent = nullptr);
     ~ModbusWriteMultipleRegistersDialog();
 signals:
     void writeFunctionTriggered(QByteArray pack);
@@ -42,7 +43,7 @@ private:
 private:
     Ui::ModbusWriteMultipleRegistersDialog *ui;
     static const QMap<QString, int> format_map;
-    int m_protocol;
+    ModbusBase *m_modbus;
     int m_format;
     quint16 *m_reg_values;
 };

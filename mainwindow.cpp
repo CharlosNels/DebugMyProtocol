@@ -9,6 +9,9 @@
 #include <QMessageBox>
 #include "modbuswidget.h"
 #include "addregdialog.h"
+#include "modbus_rtu.h"
+#include "modbus_ascii.h"
+#include "modbus_tcp.h"
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -40,7 +43,24 @@ void MainWindow::routeCreated(QIODevice *com, QString name, int protocol, bool i
         protocol == MODBUS_TCP ||
         protocol == MODBUS_UDP)
     {
-        ModbusWidget *modbus_widget = new ModbusWidget(is_master, com, protocol);
+        ModbusBase *modbus{ nullptr };
+        switch(protocol)
+        {
+            case MODBUS_RTU:
+                modbus = new Modbus_RTU();
+                break;
+            case MODBUS_ASCII:
+                modbus = new Modbus_ASCII();
+                break;
+            case MODBUS_TCP:
+            case MODBUS_UDP:
+                modbus = new Modbus_TCP();
+        }
+        if(!modbus)
+        {
+            return;
+        }
+        ModbusWidget *modbus_widget = new ModbusWidget(is_master, com, modbus, protocol);
         modbus_widget->setWindowTitle(name + QString(" - %1" ).arg(is_master ? tr("Master") : tr("Slave")));
         ui->mdi_area_modbus->addSubWindow(modbus_widget);
         modbus_widget->show();

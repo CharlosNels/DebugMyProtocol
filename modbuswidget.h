@@ -9,6 +9,7 @@
 #include "modbuswritesingleregisterdialog.h"
 #include "modbuswritemultiplecoilsdialog.h"
 #include "modbuswritemultipleregistersdialog.h"
+#include "ModbusBase.h"
 
 struct ModbusRegReadDefinitions;
 class QTimer;
@@ -25,7 +26,7 @@ class ModbusWidget : public ProtocolWidget
     Q_OBJECT
 
 public:
-    explicit ModbusWidget(bool is_master, QIODevice *com, int protocol, QWidget *parent = nullptr);
+    explicit ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, int protocol, QWidget *parent = nullptr);
     ~ModbusWidget();
 
 signals:
@@ -62,6 +63,7 @@ private:
 private:
     Ui::ModbusWidget *ui;
     QMdiArea *m_regs_area;
+    ModbusBase *m_modbus;
     bool m_is_master;
     QTimer *m_scan_timer;
     QTimer *m_send_timer;
