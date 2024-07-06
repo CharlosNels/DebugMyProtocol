@@ -2,7 +2,11 @@
 <br/>
 
 **A Modbus communication protocol debugging tool (Modbus poll, Modbus slave likely),support multi-master and multi-slave online at the same time.**
+
 <br/>
+Introduce Video:[Modbus调试工具，支持模拟多主机多从机同时在线，已开源](https://www.bilibili.com/video/BV1ga4y127eZ/?share_source=copy_web&vd_source=8cc88998fd1f6a6b5a2e895925459bd9)
+<br/>
+
 ## Supported connection types:
 <br/>
 
