@@ -9,8 +9,12 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets SerialPort Network)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets SerialPort Network)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets SerialPort Network)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets SerialPort Network)
+
+include_directories(${PROJECT_SOURCE_DIR}/include)
+add_library(QASocket STATIC IMPORTED)
+set_target_properties(QASocket PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/libQASocket.a)
 
 set(PROJECT_SOURCES
         main.cpp
@@ -23,7 +27,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ComTool
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        mytcpsocket.h mytcpsocket.cpp
 
 
         modbus_rtu.h modbus_rtu.cpp
@@ -41,7 +44,6 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         regsviewwidget.h regsviewwidget.cpp regsviewwidget.ui
         ModbusFrameInfo.h
         utils.h utils.cpp
-        myudpsocket.h myudpsocket.cpp
         displaycommunication.h displaycommunication.cpp displaycommunication.ui
         modbuswritesinglecoildialog.h modbuswritesinglecoildialog.cpp modbuswritesinglecoildialog.ui
         modbuswritesingleregisterdialog.h modbuswritesingleregisterdialog.cpp modbuswritesingleregisterdialog.ui
@@ -69,7 +71,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(ComTool PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Network)
+target_link_libraries(ComTool PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Network QASocket)
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.

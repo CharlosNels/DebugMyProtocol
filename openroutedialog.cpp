@@ -126,9 +126,22 @@ void OpenRouteDialog::clientConnectFinished(bool connected)
     }
 }
 
-void OpenRouteDialog::socketErrorOccurred(const std::error_code &ec)
+void OpenRouteDialog::socketErrorOccurred()
 {
-    FloatBox::message(QString("%1 %2").arg(ec.value()).arg(QString::fromStdString(ec.message())), 3000, m_parent_window->geometry());
+    MyTcpSocket *tcp_sock = dynamic_cast<MyTcpSocket*>(sender());
+    if(tcp_sock)
+    {
+        FloatBox::message(tcp_sock->errorString(), 3000, m_parent_window->geometry());
+    }
+    else
+    {
+        MyUdpSocket *udp_sock = dynamic_cast<MyUdpSocket*>(sender());
+        if(udp_sock)
+        {
+            FloatBox::message(udp_sock->errorString(), 3000, m_parent_window->geometry());
+        }
+    }
+
 }
 
 void OpenRouteDialog::newTcpConnectionIncoming(MyTcpSocket *sock_ptr)

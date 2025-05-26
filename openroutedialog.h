@@ -3,9 +3,8 @@
 
 #include <QDialog>
 #include <QSerialPort>
-#include <boost/shared_ptr.hpp>
 #include <QList>
-#include <system_error>
+#include <QMap>
 
 namespace Ui {
 class OpenRouteDialog;
@@ -38,7 +37,7 @@ private slots:
 
     void clientConnectFinished(bool connected);
 
-    void socketErrorOccurred(const std::error_code &ec);
+    void socketErrorOccurred();
 
     void newTcpConnectionIncoming(MyTcpSocket *sock_ptr);
 

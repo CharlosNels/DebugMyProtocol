@@ -1,7 +1,6 @@
 #ifndef MODBUSFRAMEINFO_H
 #define MODBUSFRAMEINFO_H
 
-#include <QtTypes>
 #include <QString>
 
 enum ModbusFunctions{
@@ -51,7 +50,7 @@ struct ModbusFrameInfo{
     {
         QString ret = QString("trans_id:%1 id:%2 function:%3 reg_addr:%4 quantity:%5 reg_values:%6")
                           .arg(trans_id).arg(id).arg(function).arg(reg_addr).arg(quantity)
-                          .arg(QByteArray((char*)reg_values,quantity * 2).toHex(' ').toUpper());
+                          .arg(QString(QByteArray((char*)reg_values,quantity * 2).toHex(' ').toUpper()));
         return ret;
     }
 };
