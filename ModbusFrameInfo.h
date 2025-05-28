@@ -38,13 +38,13 @@ struct ModbusFrameInfo{
     //tcp,udp transaction identifier
     quint16 trans_id{};
     //master or slave ID
-    int id{};
+    quint8 id{};
     //function code
-    int function{};
+    quint8 function{};
     //register or coil address
-    int reg_addr{};
-    int quantity{};
-    unsigned short reg_values[2000]{0};
+    quint16 reg_addr{};
+    quint16 quantity{};
+    quint16 reg_values[2000]{0};
 
     QString toString() const
     {

@@ -9,8 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets SerialPort Network)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets SerialPort Network)
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets SerialPort Network PrintSupport)
+find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets SerialPort Network PrintSupport)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
 add_library(QASocket STATIC IMPORTED)
@@ -32,9 +32,8 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         modbus_rtu.h modbus_rtu.cpp
         modbus_ascii.h modbus_ascii.cpp
         modbus_tcp.h modbus_tcp.cpp
-
-        coap.h coap.cpp
-
+        qcustomplot.h
+        qcustomplot.cpp
 
         floatbox.h floatbox.cpp
         openroutedialog.h openroutedialog.cpp openroutedialog.ui
@@ -51,6 +50,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         modbuswritemultipleregistersdialog.h modbuswritemultipleregistersdialog.cpp modbuswritemultipleregistersdialog.ui
         errorcounterdialog.h errorcounterdialog.cpp errorcounterdialog.ui
         ModbusBase.h
+
+        plotdialog.h plotdialog.cpp plotdialog.ui
+
 
     )
 # Define target properties for Android with Qt 6 as:
@@ -71,7 +73,7 @@ else()
     endif()
 endif()
 
-target_link_libraries(ComTool PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Network QASocket)
+target_link_libraries(ComTool PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::PrintSupport QASocket)
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.

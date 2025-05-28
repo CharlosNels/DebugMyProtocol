@@ -72,7 +72,7 @@ private:
     QByteArray m_master_last_send_pack;
     ModbusFrameInfo m_master_last_send_frame;
     QList<ModbusRegReadDefinitions*> m_reg_defines;
-    QMap<ModbusRegReadDefinitions*,quint64> m_last_scan_timestamp_map;
+    QMap<ModbusRegReadDefinitions*,qint64> m_last_scan_timestamp_map;
     QMap<ModbusRegReadDefinitions*,RegsViewWidget*> m_reg_def_widget_map;
     QList<QByteArray> m_cycle_list;
     QList<RegsViewWidget*> m_cycle_widget_list;

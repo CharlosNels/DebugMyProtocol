@@ -19,7 +19,6 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    qRegisterMetaType<std::error_code>("std::error_code");
     qRegisterMetaType<ModbusRegReadDefinitions*>("ModbusRegReadDefinitions*");
     m_open_route_dialog = new OpenRouteDialog(this);
     connect(m_open_route_dialog, &OpenRouteDialog::createdRoute, this, &MainWindow::routeCreated);

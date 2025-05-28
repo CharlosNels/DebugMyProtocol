@@ -128,14 +128,15 @@ void OpenRouteDialog::clientConnectFinished(bool connected)
 
 void OpenRouteDialog::socketErrorOccurred()
 {
-    MyTcpSocket *tcp_sock = dynamic_cast<MyTcpSocket*>(sender());
+    QObject *sock = sender();
+    MyTcpSocket *tcp_sock = dynamic_cast<MyTcpSocket*>(sock);
     if(tcp_sock)
     {
         FloatBox::message(tcp_sock->errorString(), 3000, m_parent_window->geometry());
     }
     else
     {
-        MyUdpSocket *udp_sock = dynamic_cast<MyUdpSocket*>(sender());
+        MyUdpSocket *udp_sock = dynamic_cast<MyUdpSocket*>(sock);
         if(udp_sock)
         {
             FloatBox::message(udp_sock->errorString(), 3000, m_parent_window->geometry());

@@ -6,3 +6,5 @@ build
 CMakeFiles
 ComTool_autogen
 .cache
+cmake_install.cmake
+Makefile

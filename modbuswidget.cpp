@@ -314,7 +314,7 @@ void ModbusWidget::scanTimerTimeoutSlot()
     {
         return;
     }
-    quint64 now_timestamp = QDateTime::currentMSecsSinceEpoch();
+    qint64 now_timestamp = QDateTime::currentMSecsSinceEpoch();
     for(auto &x : m_reg_defines)
     {
         if(now_timestamp - m_last_scan_timestamp_map[x] >= x->scan_rate)
@@ -628,6 +628,7 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
     else
     {
         ModbusErrorCode error_code{ModbusErrorCode_OK};
+        qDebug()<<"addr:"<<frame_info.reg_addr<<"quantity:"<<frame_info.quantity;
         ModbusRegReadDefinitions *reg_def = getSlaveReadDefinitions(frame_info.id, frame_info.function, frame_info.reg_addr,frame_info.quantity,error_code);
         ModbusFrameInfo reply_frame{};
         reply_frame.id = frame_info.id;
