@@ -7,11 +7,16 @@
 #include <QNetworkInterface>
 #include <QHostAddress>
 #include <QMessageBox>
+#include <QtSerialPort/QSerialPort>
+#include <QtSerialPort/QSerialPortInfo>
+#include <QList>
 #include "modbuswidget.h"
 #include "addregdialog.h"
 #include "modbus_rtu.h"
 #include "modbus_ascii.h"
 #include "modbus_tcp.h"
+#include "openroutedialog.h"
+#include "ModbusRegReadDefinitions.h"
 
 
 MainWindow::MainWindow(QWidget *parent)

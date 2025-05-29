@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QStandardItemModel>
 #include <QMap>
+#include "EnumHeader.h"
 
 struct ModbusRegReadDefinitions;
 
@@ -18,41 +19,6 @@ struct ModbusFrameInfo;
 class RegsViewWidget : public QWidget
 {
     Q_OBJECT
-
-public:
-    enum CellFormat{
-        Format_None = 0,
-        Format_Coil,
-        Format_Signed,
-        Format_Unsigned,
-        Format_Hex,
-        Format_Ascii_Hex,
-        Format_Binary,
-        Format_32_Bit_Signed_Big_Endian = 32,
-        Format_32_Bit_Signed_Little_Endian,
-        Format_32_Bit_Signed_Big_Endian_Byte_Swap,
-        Format_32_Bit_Signed_Little_Endian_Byte_Swap,
-        Format_32_Bit_Unsigned_Big_Endian,
-        Format_32_Bit_Unsigned_Little_Endian,
-        Format_32_Bit_Unsigned_Big_Endian_Byte_Swap,
-        Format_32_Bit_Unsigned_Little_Endian_Byte_Swap,
-        Format_32_Bit_Float_Big_Endian,
-        Format_32_Bit_Float_Little_Endian,
-        Format_32_Bit_Float_Big_Endian_Byte_Swap,
-        Format_32_Bit_Float_Little_Endian_Byte_Swap,
-        Format_64_Bit_Signed_Big_Endian = 64,
-        Format_64_Bit_Signed_Little_Endian,
-        Format_64_Bit_Signed_Big_Endian_Byte_Swap,
-        Format_64_Bit_Signed_Little_Endian_Byte_Swap,
-        Format_64_Bit_Unsigned_Big_Endian,
-        Format_64_Bit_Unsigned_Little_Endian,
-        Format_64_Bit_Unsigned_Big_Endian_Byte_Swap,
-        Format_64_Bit_Unsigned_Little_Endian_Byte_Swap,
-        Format_64_Bit_Float_Big_Endian,
-        Format_64_Bit_Float_Little_Endian,
-        Format_64_Bit_Float_Big_Endian_Byte_Swap,
-        Format_64_Bit_Float_Little_Endian_Byte_Swap,
-    };
 
 public:
     explicit RegsViewWidget(ModbusRegReadDefinitions *reg_defines, QWidget *parent = nullptr);

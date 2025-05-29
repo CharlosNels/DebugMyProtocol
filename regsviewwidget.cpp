@@ -1,4 +1,3 @@
-#include "regsviewwidget.h"
 #include "ui_regsviewwidget.h"
 #include "addregdialog.h"
 #include <QMenu>
@@ -7,8 +6,10 @@
 #include <QInputDialog>
 #include <QtEndian>
 #include <QClipboard>
-#include "ModbusFrameInfo.h"
+#include "regsviewwidget.h"
 #include "utils.h"
+#include "ModbusFrameInfo.h"
+#include "ModbusRegReadDefinitions.h"
 
 
 RegsViewWidget::RegsViewWidget(ModbusRegReadDefinitions *reg_def, QWidget *parent)

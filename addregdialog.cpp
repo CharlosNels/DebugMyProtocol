@@ -1,10 +1,10 @@
 #include "addregdialog.h"
 #include "ui_addregdialog.h"
-#include "openroutedialog.h"
-#include "modbus_ascii.h"
-#include "modbus_rtu.h"
-#include "modbus_tcp.h"
+#include "ModbusBase.h"
 #include "utils.h"
+#include "ModbusRegReadDefinitions.h"
+#include "ModbusFrameInfo.h"
+
 
 const QMap<QString,quint8> AddRegDialog::modbus_function_map = {
     {"01 Read Coils (0x)",ModbusReadCoils},

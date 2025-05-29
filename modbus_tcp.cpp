@@ -1,5 +1,6 @@
 #include "modbus_tcp.h"
 #include "utils.h"
+#include "ModbusFrameInfo.h"
 #include <QDebug>
 
 

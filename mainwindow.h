@@ -2,10 +2,6 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QtSerialPort/QSerialPort>
-#include <QtSerialPort/QSerialPortInfo>
-#include <QList>
-#include "openroutedialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -13,6 +9,7 @@ class MainWindow;
 }
 QT_END_NAMESPACE
 
+class OpenRouteDialog;
 
 class MainWindow : public QMainWindow
 {

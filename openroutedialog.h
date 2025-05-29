@@ -5,6 +5,7 @@
 #include <QSerialPort>
 #include <QList>
 #include <QMap>
+#include "EnumHeader.h"
 
 namespace Ui {
 class OpenRouteDialog;
@@ -12,13 +13,6 @@ class OpenRouteDialog;
 
 class MyTcpSocket;
 class MyUdpSocket;
-
-enum Protocols{
-    MODBUS_RTU,
-    MODBUS_ASCII,
-    MODBUS_TCP,
-    MODBUS_UDP,
-};
 
 class OpenRouteDialog : public QDialog
 {
@@ -66,7 +60,7 @@ private:
     static const QMap<QString, QSerialPort::StopBits> stop_bits_map;
     static const QMap<QString, QSerialPort::FlowControl> flow_control_map;
     static const QMap<QString, QList<QString> > protocol_map;
-    static const QMap<QString, int> protocol_enum_map;
+    static const QMap<QString, Protocols> protocol_enum_map;
 
     QList<MyTcpSocket*> m_listening_servers;
     QMap<MyTcpSocket*, QString> m_server_protocol_map;

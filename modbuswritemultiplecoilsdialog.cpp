@@ -3,7 +3,7 @@
 #include <QCheckBox>
 #include <QListWidgetItem>
 #include <QMessageBox>
-#include "openroutedialog.h"
+#include "ModbusBase.h"
 #include "modbuswidget.h"
 #include "utils.h"
 

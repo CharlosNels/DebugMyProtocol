@@ -2,12 +2,12 @@
 #define MODBUSWRITESINGLECOILDIALOG_H
 
 #include <QDialog>
-#include <QByteArray>
-#include "ModbusBase.h"
 
 namespace Ui {
 class ModbusWriteSingleCoilDialog;
 }
+
+class ModbusBase;
 
 class ModbusWriteSingleCoilDialog : public QDialog
 {

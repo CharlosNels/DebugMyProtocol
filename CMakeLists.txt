@@ -51,7 +51,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         errorcounterdialog.h errorcounterdialog.cpp errorcounterdialog.ui
         ModbusBase.h
 
-        plotdialog.h plotdialog.cpp plotdialog.ui
+        plotwindow.h plotwindow.cpp plotwindow.ui
+        ModbusRegReadDefinitions.h
+        EnumHeader.h
+        register_value_t.h
+        plotwindow.h plotwindow.cpp plotwindow.ui
 
 
     )

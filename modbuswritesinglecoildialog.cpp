@@ -1,7 +1,7 @@
 #include "modbuswritesinglecoildialog.h"
 #include "ui_modbuswritesinglecoildialog.h"
-#include "openroutedialog.h"
 #include "modbuswidget.h"
+#include "ModbusBase.h"
 #include <QMessageBox>
 
 ModbusWriteSingleCoilDialog::ModbusWriteSingleCoilDialog(ModbusBase *modbus, QWidget *parent)

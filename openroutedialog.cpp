@@ -8,6 +8,7 @@
 #include "floatbox.h"
 #include "mytcpsocket.h"
 #include "myudpsocket.h"
+#include "EnumHeader.h"
 
 const QMap<QString, QSerialPort::BaudRate> OpenRouteDialog::baud_map = {
     {"1200", QSerialPort::Baud1200},
@@ -54,7 +55,7 @@ const QMap<QString, QList<QString> > OpenRouteDialog::protocol_map = {
     {"UDP", {"Modbus-UDP","Modbus-RTU","Modbus-ASCII"}}
 };
 
-const QMap<QString, int> OpenRouteDialog::protocol_enum_map = {
+const QMap<QString, Protocols> OpenRouteDialog::protocol_enum_map = {
     {"Modbus-RTU", MODBUS_RTU},
     {"Modbus-ASCII", MODBUS_ASCII},
     {"Modbus-TCP", MODBUS_TCP},

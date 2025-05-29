@@ -1,7 +1,7 @@
 #include "modbuswritesingleregisterdialog.h"
 #include "ui_modbuswritesingleregisterdialog.h"
-#include "openroutedialog.h"
 #include "modbuswidget.h"
+#include "ModbusBase.h"
 #include <QMessageBox>
 
 ModbusWriteSingleRegisterDialog::ModbusWriteSingleRegisterDialog(ModbusBase *modbus, QWidget *parent)

@@ -1,4 +1,5 @@
 #include "modbuswidget.h"
+#include "modbuswritesinglecoildialog.h"
 #include "ui_modbuswidget.h"
 #include <QVBoxLayout>
 #include <QMenuBar>
@@ -13,16 +14,19 @@
 #include <QMdiArea>
 #include <QMdiSubWindow>
 #include <QIcon>
-#include "modbus_ascii.h"
-#include "modbus_rtu.h"
-#include "modbus_tcp.h"
+#include <QIODevice>
+#include "ModbusRegReadDefinitions.h"
 #include "addregdialog.h"
 #include "displaycommunication.h"
 #include "floatbox.h"
 #include "regsviewwidget.h"
-#include "openroutedialog.h"
 #include "utils.h"
 #include "errorcounterdialog.h"
+#include "modbuswritemultiplecoilsdialog.h"
+#include "modbuswritemultipleregistersdialog.h"
+#include "modbuswritesinglecoildialog.h"
+#include "modbuswritesingleregisterdialog.h"
+#include "ModbusBase.h"
 
 #define PRINT_TRAFFIC 0
 
@@ -628,7 +632,6 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
     else
     {
         ModbusErrorCode error_code{ModbusErrorCode_OK};
-        qDebug()<<"addr:"<<frame_info.reg_addr<<"quantity:"<<frame_info.quantity;
         ModbusRegReadDefinitions *reg_def = getSlaveReadDefinitions(frame_info.id, frame_info.function, frame_info.reg_addr,frame_info.quantity,error_code);
         ModbusFrameInfo reply_frame{};
         reply_frame.id = frame_info.id;

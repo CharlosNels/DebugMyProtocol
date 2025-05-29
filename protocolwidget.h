@@ -2,7 +2,8 @@
 #define PROTOCOLWIDGET_H
 
 #include <QWidget>
-#include <QIODevice>
+
+class QIODevice;
 
 class ProtocolWidget : public QWidget
 {

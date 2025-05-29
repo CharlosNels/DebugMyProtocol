@@ -1,5 +1,6 @@
 #include "modbus_rtu.h"
 #include "utils.h"
+#include "ModbusFrameInfo.h"
 #include <QDebug>
 
 QByteArray Modbus_RTU::masterFrame2Pack(const ModbusFrameInfo &frame_info)

@@ -2,13 +2,14 @@
 #define MODBUSWRITEMULTIPLECOILSDIALOG_H
 
 #include <QDialog>
-#include "ModbusBase.h"
 
 class QCheckBox;
 
 namespace Ui {
 class ModbusWriteMultipleCoilsDialog;
 }
+
+class ModbusBase;
 
 class ModbusWriteMultipleCoilsDialog : public QDialog
 {

@@ -1,8 +1,7 @@
 #include "modbus_ascii.h"
-#include <QByteArray>
-#include <QDebug>
 #include "utils.h"
-
+#include "ModbusFrameInfo.h"
+#include <QDebug>
 
 const char Modbus_ASCII::pack_start_character = ':';
 const QByteArray Modbus_ASCII::pack_terminator = QByteArray("\x0D\x0A",2);

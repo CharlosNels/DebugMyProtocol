@@ -3,23 +3,15 @@
 
 #include <QDialog>
 #include <QMap>
-#include <QByteArray>
-#include "ModbusBase.h"
+
 
 namespace Ui {
 class AddRegDialog;
 }
 
-struct ModbusRegReadDefinitions
-{
-    bool is_master{true};
-    quint8 id;
-    quint8 function;
-    quint16 reg_addr;
-    quint32 quantity;
-    quint32 scan_rate;
-    QByteArray packet;
-};
+class ModbusBase;
+
+struct ModbusRegReadDefinitions;
 
 class AddRegDialog : public QDialog
 {

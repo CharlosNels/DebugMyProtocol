@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PlotDialog</class>
- <widget class="QDialog" name="PlotDialog">
+ <class>PlotWindow</class>
+ <widget class="QMainWindow" name="PlotWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1142</width>
-    <height>694</height>
+    <width>1064</width>
+    <height>721</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>PlotWindow</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout"/>
  </widget>
  <resources/>
  <connections/>

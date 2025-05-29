@@ -1,8 +1,10 @@
 #ifndef MODBUSBASE_H
 #define MODBUSBASE_H
 
-#include "ModbusFrameInfo.h"
 #include <QObject>
+
+struct ModbusFrameInfo;
+
 class ModbusBase
 {
 public:

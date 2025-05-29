@@ -2,13 +2,13 @@
 #define MODBUSWRITEMULTIPLEREGISTERSDIALOG_H
 
 #include <QDialog>
-#include "ModbusBase.h"
 
 namespace Ui {
 class ModbusWriteMultipleRegistersDialog;
 }
 
 class QListWidgetItem;
+class ModbusBase;
 
 class ModbusWriteMultipleRegistersDialog : public QDialog
 {

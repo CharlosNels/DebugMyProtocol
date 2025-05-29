@@ -2,13 +2,12 @@
 #include "ui_modbuswritemultipleregistersdialog.h"
 #include "regsviewwidget.h"
 #include "utils.h"
-#include "openroutedialog.h"
 #include "modbuswidget.h"
+#include "EnumHeader.h"
+#include "ModbusBase.h"
 #include <QMessageBox>
 #include <QtEndian>
 #include <QInputDialog>
-
-using CellFormat = RegsViewWidget::CellFormat;
 
 const QMap<QString, int> ModbusWriteMultipleRegistersDialog::format_map = {
     {tr("Signed"), CellFormat::Format_Signed},

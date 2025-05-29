@@ -2,20 +2,21 @@
 #define MODBUSWIDGET_H
 
 #include "protocolwidget.h"
-#include <QMdiArea>
-#include <QList>
 #include "ModbusFrameInfo.h"
-#include "modbuswritesinglecoildialog.h"
-#include "modbuswritesingleregisterdialog.h"
-#include "modbuswritemultiplecoilsdialog.h"
-#include "modbuswritemultipleregistersdialog.h"
-#include "ModbusBase.h"
+#include "EnumHeader.h"
+#include <QList>
 
 struct ModbusRegReadDefinitions;
 class QTimer;
 class RegsViewWidget;
 class DisplayCommunication;
 class ErrorCounterDialog;
+class ModbusBase;
+class ModbusWriteSingleCoilDialog;
+class ModbusWriteSingleRegisterDialog;
+class ModbusWriteMultipleCoilsDialog;
+class ModbusWriteMultipleRegistersDialog;
+class QMdiArea;
 
 namespace Ui {
 class ModbusWidget;
