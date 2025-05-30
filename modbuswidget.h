@@ -4,10 +4,10 @@
 #include "protocolwidget.h"
 #include "ModbusFrameInfo.h"
 #include "EnumHeader.h"
+#include "register_value_t.h"
 #include <QList>
 
 struct ModbusRegReadDefinitions;
-class QTimer;
 class RegsViewWidget;
 class DisplayCommunication;
 class ErrorCounterDialog;
@@ -16,7 +16,9 @@ class ModbusWriteSingleCoilDialog;
 class ModbusWriteSingleRegisterDialog;
 class ModbusWriteMultipleCoilsDialog;
 class ModbusWriteMultipleRegistersDialog;
+class PlotWindow;
 class QMdiArea;
+class QTimer;
 
 namespace Ui {
 class ModbusWidget;
@@ -55,6 +57,10 @@ private slots:
     void comMasterReadyReadSlot();
     void comSlaveReadyReadSlot();
     void modifyReadDefFinished(RegsViewWidget *regs_view_widget, ModbusRegReadDefinitions *old_def, ModbusRegReadDefinitions *new_def);
+    void appendPlotGraphSlot(register_value_t reg_val);
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 private:
     bool validRegsDefinition(ModbusRegReadDefinitions *reg_def);
@@ -86,6 +92,7 @@ private:
     ModbusWriteMultipleRegistersDialog *m_function16_dialog;
     quint16 m_trans_id;
     ErrorCounterDialog *m_error_counter_dialog;
+    PlotWindow *m_plot_window;
 
 public:
     static const QMap<ModbusErrorCode, QString> modbus_error_code_map;

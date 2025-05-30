@@ -27,6 +27,7 @@
 #include "modbuswritesinglecoildialog.h"
 #include "modbuswritesingleregisterdialog.h"
 #include "ModbusBase.h"
+#include "plotwindow.h"
 
 #define PRINT_TRAFFIC 0
 
@@ -88,6 +89,9 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, in
 
     if(m_is_master)
     {
+        QAction *display_plot_window_action = tool_menu->addAction(tr("Show plot window"));
+        connect(display_plot_window_action, &QAction::triggered, m_plot_window, &PlotWindow::show);
+
         QAction *error_counter_action = tool_menu->addAction(tr("Error Counter"));
         connect(error_counter_action, &QAction::triggered, this, &ModbusWidget::actionErrorCounterTriggered);
         QMenu *setting_menu = menu_bar->addMenu(tr("Settings"));
@@ -105,6 +109,9 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, in
 
         m_error_counter_dialog = new ErrorCounterDialog(this);
         m_error_counter_dialog->hide();
+
+        m_plot_window = new PlotWindow(this);
+        m_plot_window->hide();
     }
     else
     {
@@ -298,6 +305,7 @@ void ModbusWidget::regDefinitionsCreated(ModbusRegReadDefinitions *reg_defines)
         RegsViewWidget *regs_view_widget = new RegsViewWidget(reg_defines,this);
         connect(regs_view_widget, &RegsViewWidget::writeFunctionTriggered, this, &ModbusWidget::writeFrameTriggered);
         connect(regs_view_widget, &RegsViewWidget::closed, this, &ModbusWidget::RegsViewWidgetClosed);
+        connect(regs_view_widget, &RegsViewWidget::append_plot_graph, this, &ModbusWidget::appendPlotGraphSlot);
         regs_view_widget->setWindowTitle(QString("ID:%1 - Registers : %2").arg(reg_defines->id).arg(reg_defines->reg_addr));
         m_last_scan_timestamp_map[reg_defines] = 0;
         m_reg_def_widget_map[reg_defines] = regs_view_widget;
@@ -490,6 +498,28 @@ void ModbusWidget::modifyReadDefFinished(RegsViewWidget *regs_view_widget, Modbu
     }
 }
 
+void ModbusWidget::appendPlotGraphSlot(register_value_t reg_val)
+{
+    if(m_plot_window->isFull())
+    {
+        static bool first_warn = true;
+        if(first_warn)
+        {
+            QMessageBox::information(this, tr("tips"), tr("Only ten graphs can be displayed at most."));
+            first_warn = false;
+        }
+        return;
+    }
+    m_plot_window->addGraph(reg_val);
+    m_plot_window->show();
+}
+
+void ModbusWidget::closeEvent(QCloseEvent *event)
+{
+    Q_UNUSED(event)
+    deleteLater();
+}
+
 bool ModbusWidget::validRegsDefinition(ModbusRegReadDefinitions *reg_def)
 {
     for(auto &x : m_reg_defines)
@@ -610,6 +640,7 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
             if(regs_view_widget)
             {
                 regs_view_widget->setRegisterValues(frame_info.reg_values, m_master_last_send_frame.reg_addr, frame_info.quantity);
+                m_plot_window->flushGraph();
                 regs_view_widget->setErrorInfo("");
             }
         }

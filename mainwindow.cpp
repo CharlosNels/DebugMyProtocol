@@ -28,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_open_route_dialog = new OpenRouteDialog(this);
     connect(m_open_route_dialog, &OpenRouteDialog::createdRoute, this, &MainWindow::routeCreated);
     m_open_route_dialog->hide();
+    showMaximized();
 }
 
 MainWindow::~MainWindow()

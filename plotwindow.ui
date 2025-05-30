@@ -13,6 +13,7 @@
   <property name="windowTitle">
    <string>PlotWindow</string>
   </property>
+  <widget class="QWidget" name="centralwidget"/>
  </widget>
  <resources/>
  <connections/>

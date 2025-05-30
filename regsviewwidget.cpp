@@ -11,7 +11,6 @@
 #include "ModbusFrameInfo.h"
 #include "ModbusRegReadDefinitions.h"
 
-
 RegsViewWidget::RegsViewWidget(ModbusRegReadDefinitions *reg_def, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::RegsViewWidget), m_reg_defines(reg_def), m_send_count(0), m_error_count(0)
@@ -95,6 +94,12 @@ RegsViewWidget::RegsViewWidget(ModbusRegReadDefinitions *reg_def, QWidget *paren
     m_popup_menu->addSeparator();
     m_copy_action = m_popup_menu->addAction(tr("Copy"));
     m_select_all_action = m_popup_menu->addAction(tr("Select All"));
+
+    if(reg_def->is_master)
+    {
+        m_append_to_plot_graph_action = m_popup_menu->addAction(tr("Append to Plots"));
+        connect(m_append_to_plot_graph_action, &QAction::triggered, this, &RegsViewWidget::appendToPlotsActionTriggered);
+    }
 
     m_format_map = {
         {m_format_signed_action, Format_Signed},
@@ -349,6 +354,19 @@ void RegsViewWidget::copyActionTriggered()
 void RegsViewWidget::selectAllActionTriggered()
 {
     ui->regs_table_view->selectColumn(2);
+}
+
+void RegsViewWidget::appendToPlotsActionTriggered()
+{
+    QModelIndexList selections = ui->regs_table_view->selectionModel()->selectedIndexes();
+    for(int row = selections.first().row(); row <= selections.last().row(); ++row)
+    {
+        if(m_cell_formats[row] == Format_Signed || m_cell_formats[row] == Format_Unsigned || m_cell_formats[row] >= Format_32_Bit_Signed_Big_Endian)
+        {
+            register_value_t reg_val{&m_register_values[row], m_cell_formats[row], quint16(m_reg_defines->reg_addr + row), m_table_model->item(row, 1)->text()};
+            emit append_plot_graph(reg_val);
+        }
+    }
 }
 
 void RegsViewWidget::updateRegisterValues()

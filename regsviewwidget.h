@@ -5,6 +5,7 @@
 #include <QStandardItemModel>
 #include <QMap>
 #include "EnumHeader.h"
+#include "register_value_t.h"
 
 struct ModbusRegReadDefinitions;
 
@@ -35,18 +36,20 @@ public:
 signals:
     void writeFunctionTriggered(const ModbusFrameInfo &frame_info);
     void closed(ModbusRegReadDefinitions *reg_defines);
+    void append_plot_graph(register_value_t reg_val);
 
 private slots:
     void formatActionTriggered();
     void copyActionTriggered();
     void selectAllActionTriggered();
+    void appendToPlotsActionTriggered();
 
     void on_regs_table_view_customContextMenuRequested(const QPoint &pos);
 
     void on_regs_table_view_doubleClicked(const QModelIndex &index);
 
 protected:
-    void closeEvent(QCloseEvent *event)override;
+    void closeEvent(QCloseEvent *event) override;
 
 private:
 
@@ -94,6 +97,8 @@ private:
 
     QAction *m_copy_action;
     QAction *m_select_all_action;
+
+    QAction *m_append_to_plot_graph_action;
     
 private:
     void updateRegisterValues();
