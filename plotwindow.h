@@ -26,6 +26,7 @@ public:
     void addGraph(register_value_t reg_val);
     void flushGraph();
     bool isFull();
+    void removeGraph(register_value_t reg_val);
 
 protected:
     void closeEvent(QCloseEvent *event) override;

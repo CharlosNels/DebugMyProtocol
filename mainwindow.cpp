@@ -18,7 +18,6 @@
 #include "openroutedialog.h"
 #include "ModbusRegReadDefinitions.h"
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)

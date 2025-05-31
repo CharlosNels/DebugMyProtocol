@@ -13,8 +13,18 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets SerialPort Networ
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets SerialPort Network PrintSupport)
 
 include_directories(${PROJECT_SOURCE_DIR}/include)
+
 add_library(QASocket STATIC IMPORTED)
-set_target_properties(QASocket PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/libQASocket.a)
+
+set(Asio_path F:/Libs/asio)
+
+if(WIN32)
+    include_directories(${Asio_path}/include)
+    set_target_properties(QASocket PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/win/libQASocket.a)
+elseif(LINUX)
+    set_target_properties(QASocket PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/linux/libQASocket.a)
+endif()
+
 
 set(PROJECT_SOURCES
         main.cpp
@@ -78,7 +88,13 @@ else()
     endif()
 endif()
 
-target_link_libraries(ComTool PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::PrintSupport QASocket)
+if(WIN32)
+    target_link_libraries(ComTool PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::PrintSupport QASocket ws2_32 wsock32)
+else()
+    target_link_libraries(ComTool PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::PrintSupport QASocket)
+endif()
+
+
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
 # explicit, fixed bundle identifier manually though.

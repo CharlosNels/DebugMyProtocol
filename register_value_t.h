@@ -8,7 +8,8 @@ struct register_value_t{
     CellFormat format;
     quint16 reg_addr;
     QString reg_name;
-    bool operator<(const register_value_t another)const{
+    bool operator<(const register_value_t another) const
+    {
         if(addr != another.addr)
         {
             return addr < another.addr;
@@ -22,6 +23,10 @@ struct register_value_t{
             return reg_addr < another.reg_addr;
         }
         return reg_name < another.reg_name;
+    }
+    bool operator==(const register_value_t another) const
+    {
+        return addr == another.addr && format == another.format && reg_addr == another.reg_addr && reg_name == another.reg_name;
     }
 };
 

@@ -10,6 +10,11 @@
     <height>513</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>14</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Read/Write Definition</string>
   </property>

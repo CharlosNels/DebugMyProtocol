@@ -35,7 +35,7 @@ PlotWindow::PlotWindow(QWidget *parent)
 
 void PlotWindow::addGraph(register_value_t reg_val)
 {
-    if(m_reg_list.size() >= m_graph_pens.size())
+    if(m_reg_list.size() >= m_graph_pens.size() || m_reg_list.contains(reg_val))
     {
         return;
     }
@@ -87,6 +87,17 @@ void PlotWindow::flushGraph()
 bool PlotWindow::isFull()
 {
     return m_reg_list.size() >= m_graph_pens.size();
+}
+
+void PlotWindow::removeGraph(register_value_t reg_val)
+{
+    if(!m_reg_list.contains(reg_val))
+    {
+        return;
+    }
+    m_plot->removeGraph(m_reg_list.indexOf(reg_val));
+    m_reg_list.removeOne(reg_val);
+    m_time_begin_map.remove(reg_val);
 }
 
 void PlotWindow::closeEvent(QCloseEvent *event)

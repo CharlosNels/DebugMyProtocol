@@ -10,6 +10,11 @@
     <height>339</height>
    </rect>
   </property>
+  <property name="font">
+   <font>
+    <pointsize>14</pointsize>
+   </font>
+  </property>
   <property name="windowTitle">
    <string>Error Counters</string>
   </property>

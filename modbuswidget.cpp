@@ -89,6 +89,9 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, in
 
     if(m_is_master)
     {
+        m_plot_window = new PlotWindow(this);
+        m_plot_window->hide();
+
         QAction *display_plot_window_action = tool_menu->addAction(tr("Show plot window"));
         connect(display_plot_window_action, &QAction::triggered, m_plot_window, &PlotWindow::show);
 
@@ -109,9 +112,6 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, in
 
         m_error_counter_dialog = new ErrorCounterDialog(this);
         m_error_counter_dialog->hide();
-
-        m_plot_window = new PlotWindow(this);
-        m_plot_window->hide();
     }
     else
     {
@@ -154,6 +154,12 @@ void ModbusWidget::RegsViewWidgetClosed(ModbusRegReadDefinitions *reg_defines)
     m_reg_defines.removeOne(reg_defines);
     m_last_scan_timestamp_map.remove(reg_defines);
     m_reg_def_widget_map.remove(reg_defines);
+    QList<register_value_t> graph_reg_list = m_plots_map[sender()];
+    for(auto &reg : graph_reg_list)
+    {
+        m_plot_window->removeGraph(reg);
+    }
+    m_plots_map.remove(sender());
     delete reg_defines;
 }
 
@@ -512,6 +518,10 @@ void ModbusWidget::appendPlotGraphSlot(register_value_t reg_val)
     }
     m_plot_window->addGraph(reg_val);
     m_plot_window->show();
+    if(!m_plots_map[sender()].contains(reg_val))
+    {
+        m_plots_map[sender()].append(reg_val);
+    }
 }
 
 void ModbusWidget::closeEvent(QCloseEvent *event)

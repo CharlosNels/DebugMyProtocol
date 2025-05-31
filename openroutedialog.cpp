@@ -124,6 +124,7 @@ void OpenRouteDialog::clientConnectFinished(bool connected)
     else
     {
         m_connecting_client->deleteLater();
+        m_connecting_client = nullptr;
     }
 }
 
@@ -198,12 +199,16 @@ void OpenRouteDialog::on_button_listen_clicked()
 
 void OpenRouteDialog::on_button_connect_clicked()
 {
+    if(m_connecting_client != nullptr)
+    {
+        return;
+    }
     MyTcpSocket *client = new MyTcpSocket();
     connect(client, &MyTcpSocket::socketErrorOccurred, this, &OpenRouteDialog::socketErrorOccurred);
-    m_connecting_client = client;
+    connect(client, &MyTcpSocket::connectFinished, this, &OpenRouteDialog::clientConnectFinished);
     if(client->connectToHost(ui->edit_tcp_remote_server_addr->text(), ui->box_tcp_remote_server_port->value()))
     {
-        connect(client, &MyTcpSocket::connectFinished, this, &OpenRouteDialog::clientConnectFinished);
+        m_connecting_client = client;
     }
     else
     {
