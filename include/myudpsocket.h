@@ -19,6 +19,8 @@ class MyUdpSocket : public QIODevice {
     bool connectTo(QHostAddress host, quint16 port);
     bool bind(const QHostAddress &address, quint16 port);
 
+    QString getErrorString() const;
+
   signals:
     void socketErrorOccurred();
 

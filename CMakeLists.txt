@@ -9,6 +9,8 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_BUILD_PARALLEL_LEVEL 12)
+
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core Widgets SerialPort Network PrintSupport)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Core Widgets SerialPort Network PrintSupport)
 
@@ -24,7 +26,6 @@ if(WIN32)
 elseif(LINUX)
     set_target_properties(QASocket PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/linux/libQASocket.a)
 endif()
-
 
 set(PROJECT_SOURCES
         main.cpp

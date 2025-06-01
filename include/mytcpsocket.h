@@ -4,19 +4,19 @@
 #include <QHostAddress>
 #include <QIODevice>
 #include <QObject>
-#include <QVariant>
 #include <asio.hpp>
 #include <memory>
 #include <mutex>
 #include <thread>
 
 class MyUdpSocket;
+class MyTcpServer;
 
 class MyTcpSocket : public QIODevice {
 
     friend class MyUdpSocket;
+    friend class MyTcpServer;
     typedef std::shared_ptr<asio::ip::tcp::socket> socket_ptr;
-    typedef std::shared_ptr<asio::ip::tcp::acceptor> acceptor_ptr;
 
     Q_OBJECT
     Q_DISABLE_COPY(MyTcpSocket)
@@ -27,8 +27,7 @@ class MyTcpSocket : public QIODevice {
     explicit MyTcpSocket(quint64 read_buffer_size = 1024 * 1024, QObject *parent = nullptr);
     virtual ~MyTcpSocket();
     void disconnectFromHost();
-    bool connectToHost(const QString &hostName, quint16 port);
-    bool bind(const QHostAddress &address, quint16 port);
+    void connectToHost(const QString &hostName, quint16 port);
     void setReadBufferSize(quint64 buf_size);
 
     QString peerAddress() const;
@@ -37,9 +36,10 @@ class MyTcpSocket : public QIODevice {
     QString localAddress() const;
     quint16 localPort() const;
 
+    QString getErrorString()const;
+
   signals:
     void socketErrorOccurred();
-    void newConnectionIncoming(MyTcpSocket *new_connection);
     void disconnectedFromHost();
     void connectFinished(bool connected);
 
@@ -63,11 +63,9 @@ class MyTcpSocket : public QIODevice {
     void asyncConnectCallback(const asio::error_code &ec);
     void asyncReadCallback(const asio::error_code &ec, size_t size);
     void asyncWriteCallback(const asio::error_code &ec, size_t size);
-    void asyncAcceptCallback(socket_ptr sock, const asio::error_code &ec);
 
   protected:
     socket_ptr m_asio_socket;
-    acceptor_ptr m_asio_acceptor;
     QByteArray m_recv_buffer;
     std::mutex m_socket_mutex;
     std::unique_ptr<char[]> m_asio_read_buf;

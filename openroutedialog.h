@@ -12,7 +12,8 @@ class OpenRouteDialog;
 }
 
 class MyTcpSocket;
-class MyUdpSocket;
+class MyTcpServer;
+class QPushButton;
 
 class OpenRouteDialog : public QDialog
 {
@@ -51,6 +52,10 @@ private slots:
 
     void on_button_connect_udp_clicked();
 
+    void modify_button_clicked();
+
+    void delete_button_clicked();
+
 private:
     Ui::OpenRouteDialog *ui;
 
@@ -62,9 +67,11 @@ private:
     static const QMap<QString, QList<QString> > protocol_map;
     static const QMap<QString, Protocols> protocol_enum_map;
 
-    QList<MyTcpSocket*> m_listening_servers;
-    QMap<MyTcpSocket*, QString> m_server_protocol_map;
-    QMap<MyTcpSocket*, bool> m_server_identity_map;
+    QList<MyTcpServer*> m_listening_servers;
+    QList<QPushButton*> m_modify_buttons;
+    QList<QPushButton*> m_delete_buttons;
+    QMap<MyTcpServer*, QString> m_server_protocol_map;
+    QMap<MyTcpServer*, bool> m_server_identity_map;
     MyTcpSocket *m_connecting_client;
 
     QWidget *m_parent_window;
