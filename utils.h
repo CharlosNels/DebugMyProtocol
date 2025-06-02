@@ -3,7 +3,6 @@
 #include "register_value_t.h"
 #include <QByteArray>
 #include <QtEndian>
-#include <stdint.h>
 
 quint16 CRC_16(QByteArray data, int len);
 

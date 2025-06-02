@@ -22,9 +22,9 @@ set(Asio_path F:/Libs/asio)
 
 if(WIN32)
     include_directories(${Asio_path}/include)
-    set_target_properties(QASocket PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/win/libQASocket.a)
+    set_target_properties(QASocket PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/win/libQASocketWin.a)
 elseif(LINUX)
-    set_target_properties(QASocket PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/linux/libQASocket.a)
+    set_target_properties(QASocket PROPERTIES IMPORTED_LOCATION ${PROJECT_SOURCE_DIR}/lib/linux/libQASocketLinux.a)
 endif()
 
 set(PROJECT_SOURCES
