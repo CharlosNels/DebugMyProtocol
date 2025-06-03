@@ -17,6 +17,7 @@ class ModbusWriteSingleRegisterDialog;
 class ModbusWriteMultipleCoilsDialog;
 class ModbusWriteMultipleRegistersDialog;
 class PlotWindow;
+class TestCenterWindow;
 class QMdiArea;
 class QTimer;
 
@@ -58,6 +59,8 @@ private slots:
     void comSlaveReadyReadSlot();
     void modifyReadDefFinished(RegsViewWidget *regs_view_widget, ModbusRegReadDefinitions *old_def, ModbusRegReadDefinitions *new_def);
     void appendPlotGraphSlot(register_value_t reg_val);
+    void testCenterActionTriggered();
+    void testCenterClosed();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -94,6 +97,8 @@ private:
     quint16 m_trans_id;
     ErrorCounterDialog *m_error_counter_dialog;
     PlotWindow *m_plot_window;
+    TestCenterWindow *m_test_center_window;
+    bool m_scanning;
 
 public:
     static const QMap<ModbusErrorCode, QString> modbus_error_code_map;

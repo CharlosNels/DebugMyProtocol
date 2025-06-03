@@ -28,8 +28,10 @@
 #include "modbuswritesingleregisterdialog.h"
 #include "ModbusBase.h"
 #include "plotwindow.h"
+#include "testcenterwindow.h"
 
 #define PRINT_TRAFFIC 0
+#define CYCLE_QUEUE_MAX_SIZE 128
 
 const QMap<ModbusErrorCode, QString> ModbusWidget::modbus_error_code_map = {
     {ModbusErrorCode_Timeout, tr("Timeout Error")},
@@ -95,6 +97,13 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, in
         QAction *display_plot_window_action = tool_menu->addAction(tr("Show plot window"));
         connect(display_plot_window_action, &QAction::triggered, m_plot_window, &PlotWindow::show);
 
+        m_test_center_window = new TestCenterWindow(m_com, this);
+        m_test_center_window->hide();
+
+        QAction *display_test_center_window_action = tool_menu->addAction(tr("Test Center"));
+        connect(display_test_center_window_action, &QAction::triggered, this, &ModbusWidget::testCenterActionTriggered);
+        connect(m_test_center_window, &TestCenterWindow::closed, this, &ModbusWidget::testCenterClosed);
+
         QAction *error_counter_action = tool_menu->addAction(tr("Error Counter"));
         connect(error_counter_action, &QAction::triggered, this, &ModbusWidget::actionErrorCounterTriggered);
         QMenu *setting_menu = menu_bar->addMenu(tr("Settings"));
@@ -131,14 +140,17 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, in
         m_scan_timer = new QTimer(this);
         connect(m_scan_timer, &QTimer::timeout, this, &ModbusWidget::scanTimerTimeoutSlot);
         m_scan_timer->start(1);
+        m_scanning = true;
         m_send_timer = new QTimer(this);
         connect(m_send_timer, &QTimer::timeout, this, &ModbusWidget::sendTimerTimeoutSlot);
-        m_send_timer->start(1);
+        m_send_timer->start(5);
         m_recv_timer = new QTimer(this);
         connect(m_recv_timer, &QTimer::timeout, this, &ModbusWidget::recvTimerTimeoutSlot);
+        connect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
     }
     else
     {
+        m_scanning = false;
         connect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comSlaveReadyReadSlot);
     }
 }
@@ -328,7 +340,7 @@ void ModbusWidget::regDefinitionsCreated(ModbusRegReadDefinitions *reg_defines)
 
 void ModbusWidget::scanTimerTimeoutSlot()
 {
-    if(!m_cycle_list.isEmpty())
+    if(!m_cycle_list.isEmpty() || m_cycle_list.size() > CYCLE_QUEUE_MAX_SIZE || !m_scanning)
     {
         return;
     }
@@ -370,10 +382,10 @@ void ModbusWidget::sendTimerTimeoutSlot()
             ++m_trans_id;
         }
         m_com->write(m_master_last_send_pack);
-        connect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
+        QString traffic_str = QString("Tx: %1").arg(m_master_last_send_pack.toHex(' ').toUpper());
         if(m_traffic_displayer->isVisible())
         {
-            m_traffic_displayer->appendPacket(QString("Tx: %1").arg(m_master_last_send_pack.toHex(' ').toUpper()), false);
+            m_traffic_displayer->appendPacket(traffic_str, false);
         }
         m_send_timer->stop();
         m_recv_timer->start(m_recv_timeout_ms);
@@ -414,8 +426,10 @@ void ModbusWidget::recvTimerTimeoutSlot()
         regs_view_widget->increaseErrorCount();
         regs_view_widget->setErrorInfo(tr("Timeout Error"));
     }
-    disconnect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
-    m_send_timer->start();
+    if(m_scanning)
+    {
+        m_send_timer->start();
+    }
 }
 
 void ModbusWidget::comMasterReadyReadSlot()
@@ -436,14 +450,17 @@ void ModbusWidget::comMasterReadyReadSlot()
             if(((m_protocol == MODBUS_TCP || m_protocol == MODBUS_UDP) && frame_info.trans_id == m_master_last_send_frame.trans_id)
                 || (m_protocol != MODBUS_TCP && m_protocol != MODBUS_UDP))
             {
+                QString traffic_str = QString("Rx: %1").arg(m_recv_buffer.toHex(' ').toUpper());
                 if(m_traffic_displayer->isVisible())
                 {
-                    m_traffic_displayer->appendPacket(QString("Rx: %1").arg(m_recv_buffer.toHex(' ').toUpper()), frame_info.function > ModbusFunctionError);
+                    m_traffic_displayer->appendPacket(traffic_str, frame_info.function > ModbusFunctionError);
                 }
                 m_recv_timer->stop();
                 processModbusFrame(frame_info);
-                disconnect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
-                m_send_timer->start();
+                if(m_scanning)
+                {
+                    m_send_timer->start(5);
+                }
             }
         }
         m_recv_buffer.clear();
@@ -452,8 +469,17 @@ void ModbusWidget::comMasterReadyReadSlot()
 
 void ModbusWidget::comSlaveReadyReadSlot()
 {
+    if(m_protocol == MODBUS_RTU)
+    {
+        static qint64 last_recved_timestamp = QDateTime::currentMSecsSinceEpoch();
+        qint64 now_timestamp = QDateTime::currentMSecsSinceEpoch();
+        if(now_timestamp - last_recved_timestamp > 5)
+        {
+            m_recv_buffer.clear();
+        }
+        last_recved_timestamp = now_timestamp;
+    }
     m_recv_buffer.append(m_com->readAll());
-
     bool is_intact {false};
     ModbusFrameInfo frame_info{};
     is_intact = m_modbus->validPack(m_recv_buffer);
@@ -473,9 +499,10 @@ void ModbusWidget::comSlaveReadyReadSlot()
         }
         if(has_id)
         {
+            QString traffic_str = QString("Rx: %1").arg(m_recv_buffer.toHex(' ').toUpper());
             if(m_traffic_displayer->isVisible())
             {
-                m_traffic_displayer->appendPacket(QString("Rx: %1").arg(m_recv_buffer.toHex(' ').toUpper()), false);
+                m_traffic_displayer->appendPacket(traffic_str, false);
             }
             processModbusFrame(frame_info);
         }
@@ -522,6 +549,20 @@ void ModbusWidget::appendPlotGraphSlot(register_value_t reg_val)
     {
         m_plots_map[sender()].append(reg_val);
     }
+}
+
+void ModbusWidget::testCenterActionTriggered()
+{
+    disconnect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
+    m_test_center_window->show();
+    m_scanning = false;
+}
+
+void ModbusWidget::testCenterClosed()
+{
+    connect(m_com, &QIODevice::readyRead, this, &ModbusWidget::comMasterReadyReadSlot);
+    m_scanning = true;
+    m_send_timer->start(5);
 }
 
 void ModbusWidget::closeEvent(QCloseEvent *event)
@@ -736,9 +777,10 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
         qDebug()<<"Slave Send: "<<reply_pack.toHex(' ').toUpper();
 #endif
         m_com->write(reply_pack);
+        QString traffic_str = QString("Tx: %1").arg(reply_pack.toHex(' ').toUpper());
         if(m_traffic_displayer->isVisible())
         {
-            m_traffic_displayer->appendPacket(QString("Tx: %1").arg(reply_pack.toHex(' ').toUpper()), reply_frame.function > ModbusFunctionError);
+            m_traffic_displayer->appendPacket(traffic_str, reply_frame.function > ModbusFunctionError);
         }
     }
 }

@@ -22,6 +22,7 @@ RegsViewWidget::RegsViewWidget(ModbusRegReadDefinitions *reg_def, QWidget *paren
     m_table_model->setHorizontalHeaderLabels({tr("Register Address"),tr("Alias"),tr("Value")});
     m_table_model->setRowCount(reg_def->quantity);
     ui->regs_table_view->setModel(m_table_model);
+    ui->regs_table_view->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::ResizeToContents);
     ui->regs_table_view->verticalHeader()->hide();
     ui->regs_table_view->setWordWrap(false);
     m_register_values = new quint16[reg_def->quantity]{0};

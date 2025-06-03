@@ -67,6 +67,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         EnumHeader.h
         register_value_t.h
         plotwindow.h plotwindow.cpp plotwindow.ui
+        testcenterwindow.h testcenterwindow.cpp testcenterwindow.ui
 
 
 
