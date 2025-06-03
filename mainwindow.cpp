@@ -64,7 +64,7 @@ void MainWindow::routeCreated(QIODevice *com, QString name, int protocol, bool i
         {
             return;
         }
-        ModbusWidget *modbus_widget = new ModbusWidget(is_master, com, modbus, protocol);
+        ModbusWidget *modbus_widget = new ModbusWidget(is_master, com, modbus, protocol, this);
         modbus_widget->setWindowTitle(name + QString(" - %1" ).arg(is_master ? tr("Master") : tr("Slave")));
         ui->mdi_area_modbus->addSubWindow(modbus_widget);
         modbus_widget->show();

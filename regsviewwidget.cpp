@@ -13,41 +13,17 @@
 
 RegsViewWidget::RegsViewWidget(ModbusRegReadDefinitions *reg_def, QWidget *parent)
     : QWidget(parent)
-    , ui(new Ui::RegsViewWidget), m_reg_defines(reg_def), m_send_count(0), m_error_count(0)
+    , ui(new Ui::RegsViewWidget), m_send_count(0), m_error_count(0)
 {
     ui->setupUi(this);
     QIcon nullIcon;
     setWindowIcon(nullIcon);
     m_table_model = new QStandardItemModel(ui->regs_table_view);
-    m_table_model->setHorizontalHeaderLabels({tr("Register Address"),tr("Alias"),tr("Value")});
-    m_table_model->setRowCount(reg_def->quantity);
     ui->regs_table_view->setModel(m_table_model);
     ui->regs_table_view->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::ResizeToContents);
     ui->regs_table_view->verticalHeader()->hide();
     ui->regs_table_view->setWordWrap(false);
-    m_register_values = new quint16[reg_def->quantity]{0};
-    for(quint32 i = 0;i < reg_def->quantity;++i)
-    {
-        m_table_model->setItem(i, 0, new QStandardItem());
-        m_table_model->setItem(i, 1, new QStandardItem());
-        m_table_model->setItem(i, 2, new QStandardItem());
-        m_table_model->item(i, 0)->setText(QString::number(i + reg_def->reg_addr));
-        m_table_model->item(i, 0)->setEditable(false);
-        m_table_model->item(i, 1)->setEditable(true);
-        m_table_model->item(i, 2)->setEditable(false);
-        m_table_model->item(i,0)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        m_table_model->item(i,1)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        m_table_model->item(i,2)->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
-        if(reg_def->function == ModbusReadCoils || reg_def->function == ModbusReadDescreteInputs
-        || reg_def->function == ModbusWriteMultipleCoils || reg_def->function == ModbusWriteSingleCoil)
-        {
-            m_cell_formats.append(Format_Coil);
-        }
-        else{
-            m_cell_formats.append(Format_Signed);
-        }
-    }
-    updateRegisterValues();
+    m_register_values = nullptr;
     const QString big_endian_str = tr("Big-endian");
     const QString little_endian_str = tr("Little_endian");
     const QString big_endian_byte_swap_str = tr("Big-endian byte swap");
@@ -142,19 +118,12 @@ RegsViewWidget::RegsViewWidget(ModbusRegReadDefinitions *reg_def, QWidget *paren
         format_actions_group->addAction(x);
         x->setCheckable(true);
         connect(x, &QAction::triggered, this, &RegsViewWidget::formatActionTriggered);
-        if(reg_def->function == ModbusReadCoils || reg_def->function == ModbusReadDescreteInputs)
-        {
-            x->setDisabled(true);
-        }
     }
 
     m_format_signed_action->setChecked(true);
     connect(m_copy_action, &QAction::triggered, this, &RegsViewWidget::copyActionTriggered);
     connect(m_select_all_action, &QAction::triggered, this, &RegsViewWidget::selectAllActionTriggered);
-    if(!m_reg_defines->is_master)
-    {
-        ui->info_label->setText(QString("ID=%1;F=%2").arg(m_reg_defines->id).arg(m_reg_defines->function,2,10,QChar('0')));
-    }
+    setRegDef(reg_def);
 }
 
 RegsViewWidget::~RegsViewWidget()
@@ -288,6 +257,42 @@ bool RegsViewWidget::getCoilValue(int coil_addr, quint16 *value) const
         return false;
     }
     return true;
+}
+
+QString RegsViewWidget::getRegisterAlias(qint32 reg_offset)
+{
+    if(reg_offset >= m_reg_defines->quantity)
+    {
+        return "";
+    }
+    return m_table_model->item(reg_offset, 1)->text();
+}
+
+void RegsViewWidget::setRegisterAlias(qint32 reg_offset, const QString &alias)
+{
+    if(reg_offset > m_reg_defines->quantity)
+    {
+        return;
+    }
+    m_table_model->item(reg_offset, 1)->setText(alias);
+}
+
+qint32 RegsViewWidget::getRegisterFormat(qint32 reg_offset)
+{
+    if(reg_offset >= m_reg_defines->quantity)
+    {
+        return CellFormat::Format_None;
+    }
+    return m_cell_formats[reg_offset];
+}
+
+void RegsViewWidget::setRegisterFormat(qint32 reg_offset, qint32 format)
+{
+    if(reg_offset > m_reg_defines->quantity)
+    {
+        return;
+    }
+    m_cell_formats[reg_offset] = (CellFormat)format;
 }
 
 void RegsViewWidget::formatActionTriggered()

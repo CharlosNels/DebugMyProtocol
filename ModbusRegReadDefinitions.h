@@ -8,8 +8,8 @@ struct ModbusRegReadDefinitions
     quint8 id;
     quint8 function;
     quint16 reg_addr;
-    quint32 quantity;
-    quint32 scan_rate;
+    quint16 quantity;
+    qint32 scan_rate;
     QByteArray packet;
 };
 

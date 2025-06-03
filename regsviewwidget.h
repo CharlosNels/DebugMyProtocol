@@ -32,6 +32,10 @@ public:
     bool getRegisterValues(quint16 *reg_values, quint16 reg_addr, quint16 quantity) const;
     bool setCoilValue(int coil_addr, quint16 value);
     bool getCoilValue(int coil_addr, quint16 *value) const;
+    QString getRegisterAlias(qint32 reg_offset);
+    void setRegisterAlias(qint32 reg_offset, const QString &alias);
+    qint32 getRegisterFormat(qint32 reg_offset);
+    void setRegisterFormat(qint32 reg_offset, qint32 format);
 
 signals:
     void writeFunctionTriggered(const ModbusFrameInfo &frame_info);

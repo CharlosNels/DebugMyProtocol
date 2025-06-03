@@ -20,6 +20,8 @@ class PlotWindow;
 class TestCenterWindow;
 class QMdiArea;
 class QTimer;
+class QFile;
+class QMainWindow;
 
 namespace Ui {
 class ModbusWidget;
@@ -30,7 +32,7 @@ class ModbusWidget : public ProtocolWidget
     Q_OBJECT
 
 public:
-    explicit ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, int protocol, QWidget *parent = nullptr);
+    explicit ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, int protocol, QMainWindow *parent_window, QWidget *parent = nullptr);
     ~ModbusWidget();
 
 signals:
@@ -61,6 +63,9 @@ private slots:
     void appendPlotGraphSlot(register_value_t reg_val);
     void testCenterActionTriggered();
     void testCenterClosed();
+    void openRegisterDefinitionFileTriggered();
+    void saveAllRegisterDefinitionsTriggered();
+    void saveActivatingRegisterDifinitionsTriggered();
 
 protected:
     void closeEvent(QCloseEvent *event) override;
@@ -69,6 +74,8 @@ private:
     bool validRegsDefinition(ModbusRegReadDefinitions *reg_def);
     ModbusRegReadDefinitions *getSlaveReadDefinitions(int id, int function, int reg_addr, int quantity, ModbusErrorCode &error_code);
     void processModbusFrame(const ModbusFrameInfo &frame_info);
+    void saveRegisterDefinition(ModbusRegReadDefinitions *reg_def, QFile &file);
+    bool readRegisterDefinitionFile(ModbusRegReadDefinitions *reg_def, QFile &file, QList<QString> &reg_alias, QList<quint16> &reg_values, QList<qint32> &reg_formats);
 
 private:
     Ui::ModbusWidget *ui;
@@ -98,6 +105,7 @@ private:
     ErrorCounterDialog *m_error_counter_dialog;
     PlotWindow *m_plot_window;
     TestCenterWindow *m_test_center_window;
+    QMainWindow *m_parent_window;
     bool m_scanning;
 
 public:

@@ -15,6 +15,13 @@
 #include <QMdiSubWindow>
 #include <QIcon>
 #include <QIODevice>
+#include <QFileDialog>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QJsonValue>
+#include <QMainWindow>
 #include "ModbusRegReadDefinitions.h"
 #include "addregdialog.h"
 #include "displaycommunication.h"
@@ -32,6 +39,19 @@
 
 #define PRINT_TRAFFIC 0
 #define CYCLE_QUEUE_MAX_SIZE 128
+
+#define REG_DEF_IS_MASTER_STR "Is Master"
+#define REG_DEF_ID_STR "ID"
+#define REG_DEF_FUNCTION_STR "Function"
+#define REG_DEF_ADDR_STR "Register Address"
+#define REG_DEF_QUANTITY_STR "Quantity"
+#define REG_DEF_SR_STR "Scan Rate"
+#define REG_DEF_PACK_STR "Packet"
+#define REG_DEF_REG_INFO_STR "Register Info"
+#define REG_DEF_ADDR_OFFSET_STR "Register Address Offset"
+#define REG_DEF_ADDR_ALIAS_STR "Register Alias"
+#define REG_DEF_ADDR_VALUE_STR "Register Value"
+#define REG_DEF_ADDR_FORMAT_STR "Register Format"
 
 const QMap<ModbusErrorCode, QString> ModbusWidget::modbus_error_code_map = {
     {ModbusErrorCode_Timeout, tr("Timeout Error")},
@@ -60,13 +80,15 @@ const QMap<ModbusErrorCode, QString> ModbusWidget::modbus_error_code_comment_map
     {ModbusErrorCode_Gateway_Target_Device_Failed_To_Respond, tr("The slave is not present on the network.")}
 };
 
-ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, int protocol, QWidget *parent)
+ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, int protocol, QMainWindow *parent_window, QWidget *parent)
     : ProtocolWidget(com, protocol, parent)
     , ui(new Ui::ModbusWidget), m_modbus(modbus), m_is_master(is_master), m_function05_dialog(nullptr)
     , m_function06_dialog(nullptr), m_function15_dialog(nullptr), m_function16_dialog(nullptr)
     , m_trans_id(0)
 {
     ui->setupUi(this);
+
+    m_parent_window = parent_window;
 
     m_recv_timeout_ms = 300;
 
@@ -82,6 +104,12 @@ ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, in
     connect(modify_reg_action, &QAction::triggered, this, &ModbusWidget::actionModifyRegDefTriggered);
     QAction *show_frame_action = tool_menu->addAction(tr("Display Communication"));
     connect(show_frame_action, &QAction::triggered, this, &ModbusWidget::actionDisplayTrafficTriggered);
+    QAction *open_reg_def_file_action = tool_menu->addAction(tr("Open File"));
+    connect(open_reg_def_file_action, &QAction::triggered, this, &ModbusWidget::openRegisterDefinitionFileTriggered);
+    QAction *save_reg_def_action = tool_menu->addAction(tr("Save to file"));
+    connect(save_reg_def_action, &QAction::triggered, this, &ModbusWidget::saveActivatingRegisterDifinitionsTriggered);
+    QAction *save_all_reg_def_action = tool_menu->addAction(tr("Save All"));
+    connect(save_all_reg_def_action, &QAction::triggered, this, &ModbusWidget::saveAllRegisterDefinitionsTriggered);
 
     QMenu *window_menu = menu_bar->addMenu(tr("Window"));
     QAction *cascade_window_action = window_menu->addAction(tr("Cascade"));
@@ -165,6 +193,14 @@ void ModbusWidget::RegsViewWidgetClosed(ModbusRegReadDefinitions *reg_defines)
 {
     m_reg_defines.removeOne(reg_defines);
     m_last_scan_timestamp_map.remove(reg_defines);
+    RegsViewWidget *reg_view_widget = m_reg_def_widget_map[reg_defines];
+    for(int i = 0; i < m_cycle_widget_list.size(); ++i)
+    {
+        if(m_cycle_widget_list[i] == reg_view_widget)
+        {
+            m_cycle_widget_list[i] = nullptr;
+        }
+    }
     m_reg_def_widget_map.remove(reg_defines);
     QList<register_value_t> graph_reg_list = m_plots_map[sender()];
     for(auto &reg : graph_reg_list)
@@ -332,7 +368,7 @@ void ModbusWidget::regDefinitionsCreated(ModbusRegReadDefinitions *reg_defines)
     }
     else
     {
-        FloatBox::message("Illegal Registers Deinition", 3000, geometry());
+        FloatBox::message("Illegal Registers Definition, Check collision", 3000, m_parent_window->geometry());
         delete reg_defines;
     }
 
@@ -512,7 +548,6 @@ void ModbusWidget::comSlaveReadyReadSlot()
 
 void ModbusWidget::modifyReadDefFinished(RegsViewWidget *regs_view_widget, ModbusRegReadDefinitions *old_def, ModbusRegReadDefinitions *new_def)
 {
-    m_reg_defines.removeOne(old_def);
     if(validRegsDefinition(new_def))
     {
         m_reg_defines.removeOne(old_def);
@@ -524,10 +559,6 @@ void ModbusWidget::modifyReadDefFinished(RegsViewWidget *regs_view_widget, Modbu
         m_reg_def_widget_map[new_def] = regs_view_widget;
         delete old_def;
         regs_view_widget->setRegDef(new_def);
-    }
-    else
-    {
-        m_reg_defines.append(old_def);
     }
 }
 
@@ -565,9 +596,84 @@ void ModbusWidget::testCenterClosed()
     m_send_timer->start(5);
 }
 
+void ModbusWidget::openRegisterDefinitionFileTriggered()
+{
+    QString file_name = QFileDialog::getOpenFileName(this, tr("Open"), QString(), "JSON files(*.json)");
+    if(file_name.isEmpty())
+    {
+        return;
+    }
+    QFile reg_def_file(file_name);
+    if(reg_def_file.open(QIODevice::ReadOnly))
+    {
+        ModbusRegReadDefinitions *reg_def = new ModbusRegReadDefinitions;
+        QList<QString> reg_alias;
+        QList<quint16> reg_values;
+        QList<qint32> reg_formats;
+        if(readRegisterDefinitionFile(reg_def, reg_def_file, reg_alias, reg_values, reg_formats))
+        {
+            regDefinitionsCreated(reg_def);
+            RegsViewWidget *reg_view_widget = m_reg_def_widget_map[reg_def];
+            for(int i = 0; i < reg_alias.size(); ++i)
+            {
+                reg_view_widget->setRegisterAlias(i, reg_alias[i]);
+                reg_view_widget->setRegisterFormat(i, reg_formats[i]);
+                if(!reg_def->is_master)
+                {
+                    reg_view_widget->setRegisterValues(reg_values.data(), reg_def->reg_addr, reg_def->quantity);
+                }
+            }
+        }
+        else
+        {
+            delete reg_def;
+        }
+    }
+}
+
+void ModbusWidget::saveAllRegisterDefinitionsTriggered()
+{
+    for(auto &x : m_reg_defines)
+    {
+        QString file_name = QFileDialog::getSaveFileName(this, tr("Save"), QString(), "JSON file(*.json)");
+        if(file_name.isEmpty())
+        {
+            FloatBox::message(tr("Save Cancelled"), 3, m_parent_window->geometry());
+            continue;
+        }
+        QFile reg_def_file(file_name);
+        if(reg_def_file.open(QIODevice::WriteOnly))
+        {
+            saveRegisterDefinition(x, reg_def_file);
+        }
+    }
+}
+
+void ModbusWidget::saveActivatingRegisterDifinitionsTriggered()
+{
+    QString file_name = QFileDialog::getSaveFileName(this, tr("Save"), QString(), "Json file(*.txt)");
+    QMdiSubWindow *activate_window = m_regs_area->activeSubWindow();
+    if(activate_window == nullptr || file_name.isEmpty())
+    {
+        FloatBox::message(tr("Save Cancelled"), 3, m_parent_window->geometry());
+        return;
+    }
+    RegsViewWidget *reg_view_widget = dynamic_cast<RegsViewWidget*>(activate_window->widget());
+    ModbusRegReadDefinitions *reg_def = m_reg_def_widget_map.key(reg_view_widget);
+    QFile reg_def_file(file_name);
+    if(reg_def_file.open(QIODevice::WriteOnly))
+    {
+        saveRegisterDefinition(reg_def, reg_def_file);
+    }
+}
+
 void ModbusWidget::closeEvent(QCloseEvent *event)
 {
     Q_UNUSED(event)
+    for(auto &x : m_reg_defines)
+    {
+        delete x;
+    }
     deleteLater();
 }
 
@@ -783,5 +889,93 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
             m_traffic_displayer->appendPacket(traffic_str, reply_frame.function > ModbusFunctionError);
         }
     }
+}
+
+void ModbusWidget::saveRegisterDefinition(ModbusRegReadDefinitions *reg_def, QFile &file)
+{
+    QJsonDocument json_doc;
+    QJsonObject reg_def_obj;
+    RegsViewWidget *reg_view_widget = m_reg_def_widget_map[reg_def];
+    reg_def_obj.insert(REG_DEF_IS_MASTER_STR, reg_def->is_master);
+    reg_def_obj.insert(REG_DEF_ID_STR, reg_def->id);
+    reg_def_obj.insert(REG_DEF_FUNCTION_STR, reg_def->function);
+    reg_def_obj.insert(REG_DEF_QUANTITY_STR, reg_def->quantity);
+    reg_def_obj.insert(REG_DEF_ADDR_STR, reg_def->reg_addr);
+    QJsonArray reg_arr;
+    if(reg_def->is_master)
+    {
+        reg_def_obj.insert(REG_DEF_SR_STR, reg_def->scan_rate);
+        reg_def_obj.insert(REG_DEF_PACK_STR, QString(reg_def->packet.toHex()));
+        for(int i = 0; i < reg_def->quantity; ++i)
+        {
+            QJsonObject reg_obj;
+            reg_obj.insert(REG_DEF_ADDR_OFFSET_STR, i);
+            reg_obj.insert(REG_DEF_ADDR_ALIAS_STR, reg_view_widget->getRegisterAlias(i));
+            reg_obj.insert(REG_DEF_ADDR_FORMAT_STR, reg_view_widget->getRegisterFormat(i));
+            reg_arr.append(reg_obj);
+        }
+    }
+    else
+    {
+        quint16 *reg_values = new quint16[reg_def->quantity];
+        reg_view_widget->getRegisterValues(reg_values, reg_def->reg_addr, reg_def->quantity);
+        for(int i = 0; i < reg_def->quantity; ++i)
+        {
+            QJsonObject reg_obj;
+            reg_obj.insert(REG_DEF_ADDR_OFFSET_STR, i);
+            reg_obj.insert(REG_DEF_ADDR_ALIAS_STR, reg_view_widget->getRegisterAlias(i));
+            reg_obj.insert(REG_DEF_ADDR_FORMAT_STR, reg_view_widget->getRegisterFormat(i));
+            reg_obj.insert(REG_DEF_ADDR_VALUE_STR, reg_values[i]);
+            reg_arr.append(reg_obj);
+        }
+    }
+    reg_def_obj.insert(REG_DEF_REG_INFO_STR, reg_arr);
+    json_doc.setObject(reg_def_obj);
+    file.write(json_doc.toJson());
+}
+
+bool ModbusWidget::readRegisterDefinitionFile(ModbusRegReadDefinitions *reg_def, QFile &file, QList<QString> &reg_alias, QList<quint16> &reg_values, QList<qint32> &reg_formats)
+{
+    QJsonParseError parse_err{};
+    QJsonDocument json_doc = QJsonDocument::fromJson(file.readAll(), &parse_err);
+    if(parse_err.error != QJsonParseError::NoError)
+    {
+        FloatBox::message(parse_err.errorString(), 3000, m_parent_window->geometry());
+        return false;
+    }
+    QJsonObject reg_def_obj = json_doc.object();
+    reg_def->is_master = reg_def_obj.value(REG_DEF_IS_MASTER_STR).toBool();
+    reg_def->id = reg_def_obj.value(REG_DEF_ID_STR).toInt();
+    reg_def->function = reg_def_obj.value(REG_DEF_FUNCTION_STR).toInt();
+    reg_def->quantity = reg_def_obj.value(REG_DEF_QUANTITY_STR).toInt();
+    reg_def->reg_addr = reg_def_obj.value(REG_DEF_ADDR_STR).toInt();
+    QJsonArray reg_arr = reg_def_obj.value(REG_DEF_REG_INFO_STR).toArray();
+    reg_alias.resize(reg_def->quantity);
+    reg_values.resize(reg_def->quantity);
+    reg_formats.resize(reg_def->quantity);
+    if(reg_def->is_master)
+    {
+        reg_def->scan_rate = reg_def_obj.value(REG_DEF_SR_STR).toInt();
+        reg_def->packet = QByteArray::fromHex(reg_def_obj.value(REG_DEF_PACK_STR).toString().toUtf8());
+        for(int i = 0; i < reg_def->quantity; ++i)
+        {
+            QJsonObject reg_obj = reg_arr[i].toObject();
+            qint32 reg_offset = reg_obj.value(REG_DEF_ADDR_OFFSET_STR).toInt();
+            reg_alias[reg_offset] = reg_obj.value(REG_DEF_ADDR_ALIAS_STR).toString();
+            reg_formats[reg_offset] = reg_obj.value(REG_DEF_ADDR_FORMAT_STR).toInt();
+        }
+    }
+    else
+    {
+        for(int i = 0; i < reg_def->quantity; ++i)
+        {
+            QJsonObject reg_obj = reg_arr[i].toObject();
+            qint32 reg_offset = reg_obj.value(REG_DEF_ADDR_OFFSET_STR).toInt();
+            reg_alias[reg_offset] = reg_obj.value(REG_DEF_ADDR_ALIAS_STR).toString();
+            reg_formats[reg_offset] = reg_obj.value(REG_DEF_ADDR_FORMAT_STR).toInt();
+            reg_values[reg_offset] = reg_obj.value(REG_DEF_ADDR_VALUE_STR).toInt();
+        }
+    }
+    return true;
 }
 
