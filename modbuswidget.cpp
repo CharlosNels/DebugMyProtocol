@@ -657,8 +657,9 @@ void ModbusWidget::saveAllRegisterDefinitionsTriggered()
 
 void ModbusWidget::saveActivatingRegisterDifinitionsTriggered()
 {
-    QString file_name = QFileDialog::getSaveFileName(this, tr("Save"), QString(), "Json file(*.txt)");
-    QMdiSubWindow *activate_window = m_regs_area->activeSubWindow();
+    QString file_name = QFileDialog::getSaveFileName(this, tr("Save"), QString(), "Json file(*.json)");
+    m_regs_area->setFocus();
+    QMdiSubWindow *activate_window = m_regs_area->currentSubWindow();
     if(activate_window == nullptr || file_name.isEmpty())
     {
         FloatBox::message(tr("Save Cancelled"), 3, m_parent_window->geometry());
