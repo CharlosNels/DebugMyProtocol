@@ -548,6 +548,7 @@ void ModbusWidget::comSlaveReadyReadSlot()
 
 void ModbusWidget::modifyReadDefFinished(RegsViewWidget *regs_view_widget, ModbusRegReadDefinitions *old_def, ModbusRegReadDefinitions *new_def)
 {
+    m_reg_defines.removeOne(old_def);
     if(validRegsDefinition(new_def))
     {
         m_reg_defines.removeOne(old_def);
@@ -559,6 +560,11 @@ void ModbusWidget::modifyReadDefFinished(RegsViewWidget *regs_view_widget, Modbu
         m_reg_def_widget_map[new_def] = regs_view_widget;
         delete old_def;
         regs_view_widget->setRegDef(new_def);
+    }
+    else
+    {
+        m_reg_defines.append(old_def);
+        delete new_def;
     }
 }
 

@@ -45,6 +45,7 @@ private:
     const static QRegularExpression Valid_Pack_Reg_Expr;
     QIODevice *m_com;
     quint32 m_packet_id;
+    bool m_signal_connected;
     QList<QString> m_test_list;
 };
 

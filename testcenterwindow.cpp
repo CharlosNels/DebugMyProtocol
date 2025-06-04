@@ -16,6 +16,7 @@ TestCenterWindow::TestCenterWindow(QIODevice *com, QWidget *parent)
     , m_com(com)
 {
     ui->setupUi(this);
+    m_signal_connected = false;
 }
 
 TestCenterWindow::~TestCenterWindow()
@@ -25,7 +26,11 @@ TestCenterWindow::~TestCenterWindow()
 
 void TestCenterWindow::closeEvent(QCloseEvent *event)
 {
-    disconnect(m_com, &QIODevice::readyRead, this, &TestCenterWindow::comReadyReadSlot);
+    if(m_signal_connected)
+    {
+        disconnect(m_com, &QIODevice::readyRead, this, &TestCenterWindow::comReadyReadSlot);
+        m_signal_connected = false;
+    }
     ui->text_edit_traffic->clear();
     event->ignore();
     hide();
@@ -34,12 +39,12 @@ void TestCenterWindow::closeEvent(QCloseEvent *event)
 
 void TestCenterWindow::showEvent(QShowEvent *event)
 {
-    if(isVisible())
+    if(!m_signal_connected)
     {
-        return;
+        connect(m_com, &QIODevice::readyRead, this, &TestCenterWindow::comReadyReadSlot);
+        m_packet_id = 0;
+        m_signal_connected = true;
     }
-    connect(m_com, &QIODevice::readyRead, this, &TestCenterWindow::comReadyReadSlot);
-    m_packet_id = 0;
 }
 
 void TestCenterWindow::comReadyReadSlot()
