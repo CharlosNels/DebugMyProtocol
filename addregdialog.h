@@ -18,8 +18,6 @@ class AddRegDialog : public QDialog
     Q_OBJECT
 
 public:
-    static const QMap<QString,quint8> modbus_function_map;
-    static const QMap<QString,quint8> modbus_slave_function_map;
     explicit AddRegDialog(bool is_master, ModbusBase *modbus, QWidget *parent = nullptr);
     explicit AddRegDialog(bool is_master, ModbusBase *modbus, ModbusRegReadDefinitions *reg_def, QWidget *parent = nullptr);
     ~AddRegDialog();
@@ -40,6 +38,9 @@ private slots:
     void on_box_quantity_valueChanged(int arg1);
 
     void on_button_cancel_clicked();
+
+protected:
+    void changeEvent(QEvent *event) override;
 
 private:
     void generateRequest();

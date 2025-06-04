@@ -2,6 +2,7 @@
 #include "ui_modbuswritesingleregisterdialog.h"
 #include "modbuswidget.h"
 #include "ModbusBase.h"
+#include "mapdefines.h"
 #include <QMessageBox>
 
 ModbusWriteSingleRegisterDialog::ModbusWriteSingleRegisterDialog(ModbusBase *modbus, QWidget *parent)
@@ -41,9 +42,18 @@ void ModbusWriteSingleRegisterDialog::responseSlot(int error_code)
         }
         else
         {
-            ui->label_result->setText(ModbusWidget::modbus_error_code_map[(ModbusErrorCode)error_code]);
+            ui->label_result->setText(MapDefine.modbus_error_code_map[(ModbusErrorCode)error_code]);
         }
     }
+}
+
+void ModbusWriteSingleRegisterDialog::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
 }
 
 void ModbusWriteSingleRegisterDialog::on_button_cancel_clicked()

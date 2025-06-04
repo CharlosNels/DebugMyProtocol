@@ -63,6 +63,15 @@ void DisplayCommunication::showEvent(QShowEvent *event)
     ui->button_start->setText(tr("Stop"));
 }
 
+void DisplayCommunication::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
+}
+
 void DisplayCommunication::on_button_start_clicked()
 {
     m_is_recording = !m_is_recording;

@@ -35,6 +35,7 @@
 #include "modbuswritesingleregisterdialog.h"
 #include "ModbusBase.h"
 #include "plotwindow.h"
+#include "mapdefines.h"
 #include "testcenterwindow.h"
 
 #define PRINT_TRAFFIC 0
@@ -52,33 +53,6 @@
 #define REG_DEF_ADDR_ALIAS_STR "Register Alias"
 #define REG_DEF_ADDR_VALUE_STR "Register Value"
 #define REG_DEF_ADDR_FORMAT_STR "Register Format"
-
-const QMap<ModbusErrorCode, QString> ModbusWidget::modbus_error_code_map = {
-    {ModbusErrorCode_Timeout, tr("Timeout Error")},
-    {ModbusErrorCode_Illegal_Function, tr("Illegal Function")},
-    {ModbusErrorCode_Illegal_Data_Address, tr("Illegal Data Address")},
-    {ModbusErrorCode_Illegal_Data_Value, tr("Illegal Data Value")},
-    {ModbusErrorCode_Slave_Device_Failure, tr("Slave Device Failure")},
-    {ModbusErrorCode_Acknowledge, tr("Acknowledge")},
-    {ModbusErrorCode_Slave_Device_Busy, tr("Slave Device Busy")},
-    {ModbusErrorCode_Negative_Acknowledgment, tr("Negative Acknowledgment")},
-    {ModbusErrorCode_Memory_Parity_Error, tr("Memory Parity Error")},
-    {ModbusErrorCode_Gateway_Path_Unavailable, tr("Gateway Path Unavailable")},
-    {ModbusErrorCode_Gateway_Target_Device_Failed_To_Respond, tr("Gateway Target Device Failed To Respond")}
-};
-const QMap<ModbusErrorCode, QString> ModbusWidget::modbus_error_code_comment_map = {
-    {ModbusErrorCode_Timeout, tr("The slave did not reply within the specified time.")},
-    {ModbusErrorCode_Illegal_Function, tr("The function code received in the request is not an authorized action for the slave. The slave may be in the wrong state to process a specific request.")},
-    {ModbusErrorCode_Illegal_Data_Address, tr("The data address received by the slave is not an authorized address for the slave.")},
-    {ModbusErrorCode_Illegal_Data_Value, tr("The value in the request data field is not an authorized value for the slave.")},
-    {ModbusErrorCode_Slave_Device_Failure, tr("The slave fails to perform a requested action because of an unrecoverable error.")},
-    {ModbusErrorCode_Acknowledge, tr("The slave accepts the request but needs a long time to process it.")},
-    {ModbusErrorCode_Slave_Device_Busy, tr("The slave is busy processing another command. The master must send the request once the slave is available.")},
-    {ModbusErrorCode_Negative_Acknowledgment, tr("The slave cannot perform the programming request sent by the master.")},
-    {ModbusErrorCode_Memory_Parity_Error, tr("The slave detects a parity error in the memory when attempting to read extended memory.")},
-    {ModbusErrorCode_Gateway_Path_Unavailable, tr("The gateway is overloaded or not correctly configured.")},
-    {ModbusErrorCode_Gateway_Target_Device_Failed_To_Respond, tr("The slave is not present on the network.")}
-};
 
 ModbusWidget::ModbusWidget(bool is_master, QIODevice *com,ModbusBase *modbus, int protocol, QMainWindow *parent_window, QWidget *parent)
     : ProtocolWidget(com, protocol, parent)
@@ -684,6 +658,15 @@ void ModbusWidget::closeEvent(QCloseEvent *event)
     deleteLater();
 }
 
+void ModbusWidget::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
+}
+
 bool ModbusWidget::validRegsDefinition(ModbusRegReadDefinitions *reg_def)
 {
     for(auto &x : m_reg_defines)
@@ -780,7 +763,7 @@ void ModbusWidget::processModbusFrame(const ModbusFrameInfo &frame_info)
             if(regs_view_widget)
             {
                 regs_view_widget->increaseErrorCount();
-                regs_view_widget->setErrorInfo(modbus_error_code_map[error_code]);
+                regs_view_widget->setErrorInfo(MapDefine.modbus_error_code_map[error_code]);
             }
         }
         else if(frame_info.function == ModbusReadCoils ||

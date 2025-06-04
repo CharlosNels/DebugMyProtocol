@@ -69,6 +69,7 @@ private slots:
 
 protected:
     void closeEvent(QCloseEvent *event) override;
+    void changeEvent(QEvent *event) override;
 
 private:
     bool validRegsDefinition(ModbusRegReadDefinitions *reg_def);
@@ -107,11 +108,6 @@ private:
     TestCenterWindow *m_test_center_window;
     QMainWindow *m_parent_window;
     bool m_scanning;
-
-public:
-    static const QMap<ModbusErrorCode, QString> modbus_error_code_map;
-    static const QMap<ModbusErrorCode, QString> modbus_error_code_comment_map;
-
 };
 
 #endif // MODBUSWIDGET_H

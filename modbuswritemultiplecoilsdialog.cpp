@@ -6,6 +6,7 @@
 #include "ModbusBase.h"
 #include "modbuswidget.h"
 #include "utils.h"
+#include "mapdefines.h"
 
 ModbusWriteMultipleCoilsDialog::ModbusWriteMultipleCoilsDialog(ModbusBase *modbus, QWidget *parent)
     : QDialog(parent)
@@ -39,9 +40,18 @@ void ModbusWriteMultipleCoilsDialog::responseSlot(int error_code)
     }
     else
     {
-        tip_string = ModbusWidget::modbus_error_code_map[(ModbusErrorCode)error_code];
+        tip_string = MapDefine.modbus_error_code_map[(ModbusErrorCode)error_code];
     }
     QMessageBox::warning(this, "Modbus", tip_string);
+}
+
+void ModbusWriteMultipleCoilsDialog::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
 }
 
 void ModbusWriteMultipleCoilsDialog::on_button_update_coil_list_clicked()

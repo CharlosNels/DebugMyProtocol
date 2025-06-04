@@ -2,6 +2,7 @@
 #include "ui_modbuswritesinglecoildialog.h"
 #include "modbuswidget.h"
 #include "ModbusBase.h"
+#include "mapdefines.h"
 #include <QMessageBox>
 
 ModbusWriteSingleCoilDialog::ModbusWriteSingleCoilDialog(ModbusBase *modbus, QWidget *parent)
@@ -41,9 +42,18 @@ void ModbusWriteSingleCoilDialog::responseSlot(int error_code)
         }
         else
         {
-            ui->label_result->setText(ModbusWidget::modbus_error_code_map[(ModbusErrorCode)error_code]);
+            ui->label_result->setText(MapDefine.modbus_error_code_map[(ModbusErrorCode)error_code]);
         }
     }
+}
+
+void ModbusWriteSingleCoilDialog::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
 }
 
 void ModbusWriteSingleCoilDialog::on_button_send_clicked()

@@ -1,6 +1,7 @@
 #include "errorcounterdialog.h"
 #include "ui_errorcounterdialog.h"
 #include "modbuswidget.h"
+#include "mapdefines.h"
 #include <QListWidgetItem>
 
 ErrorCounterDialog::ErrorCounterDialog(QWidget *parent)
@@ -21,10 +22,19 @@ void ErrorCounterDialog::showEvent(QShowEvent *event)
     QListWidgetItem *error_item{nullptr};
     for(auto x = m_error_count_map.constBegin();x != m_error_count_map.constEnd();++x)
     {
-        error_item = new QListWidgetItem(QString("%1\t%2").arg(x.value()).arg(ModbusWidget::modbus_error_code_map[(ModbusErrorCode)x.key()]), ui->list_errors);
-        error_item->setToolTip(ModbusWidget::modbus_error_code_comment_map[(ModbusErrorCode)x.key()]);
+        error_item = new QListWidgetItem(QString("%1\t%2").arg(x.value()).arg(MapDefine.modbus_error_code_map[(ModbusErrorCode)x.key()]), ui->list_errors);
+        error_item->setToolTip(MapDefine.modbus_error_code_comment_map[(ModbusErrorCode)x.key()]);
         ui->list_errors->addItem(error_item);
     }
+}
+
+void ErrorCounterDialog::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
 }
 
 void ErrorCounterDialog::increaseErrorCount(int error_code)

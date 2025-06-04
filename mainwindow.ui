@@ -56,7 +56,7 @@
      <x>0</x>
      <y>0</y>
      <width>2037</width>
-     <height>30</height>
+     <height>35</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -64,12 +64,18 @@
      <string>File</string>
     </property>
     <addaction name="actionOpen_Route"/>
+    <addaction name="actionLanguage"/>
    </widget>
    <addaction name="menuFile"/>
   </widget>
   <action name="actionOpen_Route">
    <property name="text">
     <string>Open Route</string>
+   </property>
+  </action>
+  <action name="actionLanguage">
+   <property name="text">
+    <string>Language</string>
    </property>
   </action>
  </widget>

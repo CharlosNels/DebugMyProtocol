@@ -19,11 +19,17 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override;
+    void changeEvent(QEvent *event) override;
+
 private slots:
 
     void on_actionOpen_Route_triggered();
 
     void routeCreated(QIODevice *com, QString name, int protocol, bool is_master);
+
+    void on_actionLanguage_triggered();
 
 private:
     Ui::MainWindow *ui;

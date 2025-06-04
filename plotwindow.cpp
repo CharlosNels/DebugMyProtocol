@@ -107,6 +107,15 @@ void PlotWindow::closeEvent(QCloseEvent *event)
     hide();
 }
 
+void PlotWindow::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
+}
+
 void PlotWindow::plotMouseMoveEvent(QMouseEvent *event)
 {
     for(int i = 0; i < m_plot->graphCount(); ++i)

@@ -1509,3 +1509,12 @@ void RegsViewWidget::closeEvent(QCloseEvent *event)
     deleteLater();
 }
 
+void RegsViewWidget::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
+}
+

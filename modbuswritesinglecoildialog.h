@@ -23,6 +23,9 @@ signals:
 public slots:
     void responseSlot(int error_code);
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private slots:
     void on_button_send_clicked();
 

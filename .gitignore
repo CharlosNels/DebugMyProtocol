@@ -1,10 +1,14 @@
 .git
 .vscode
 .VSCodeCounter
+.qt
+.lupdate
+.cache
 *.user
 build
 CMakeFiles
 ComTool_autogen
-.cache
 cmake_install.cmake
 Makefile
+CMakeCache.txt
+cmake_install.cmake

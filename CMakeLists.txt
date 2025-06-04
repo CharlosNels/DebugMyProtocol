@@ -34,6 +34,13 @@ set(PROJECT_SOURCES
         mainwindow.ui
 )
 
+set(TS_FILES ./translations/zh_CN.ts)
+
+
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS ${REQUIRED_LIBS} LinguistTools REQUIRED)
+
+qt6_create_translation(QM_FILES ${CMAKE_CURRENT_SOURCE_DIR} ${TS_FILES})
+
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(ComTool
         MANUAL_FINALIZATION
@@ -68,8 +75,9 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         register_value_t.h
         plotwindow.h plotwindow.cpp plotwindow.ui
         testcenterwindow.h testcenterwindow.cpp testcenterwindow.ui
+        mapdefines.h mapdefines.cpp
 
-
+        ${QM_FILES}
 
     )
 # Define target properties for Android with Qt 6 as:
@@ -95,7 +103,6 @@ if(WIN32)
 else()
     target_link_libraries(ComTool PRIVATE Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::SerialPort Qt${QT_VERSION_MAJOR}::Network Qt${QT_VERSION_MAJOR}::PrintSupport QASocket)
 endif()
-
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an

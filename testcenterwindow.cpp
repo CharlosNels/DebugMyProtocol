@@ -47,6 +47,15 @@ void TestCenterWindow::showEvent(QShowEvent *event)
     }
 }
 
+void TestCenterWindow::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
+}
+
 void TestCenterWindow::comReadyReadSlot()
 {
     QByteArray recv_buffer = m_com->readAll();

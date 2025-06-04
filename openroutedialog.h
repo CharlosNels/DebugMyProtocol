@@ -26,6 +26,9 @@ public:
 signals:
     void createdRoute(QIODevice *com, QString name, int protocol, bool is_master);
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private slots:
 
     void tcpSocketDisconnectedFromHost();
@@ -58,14 +61,6 @@ private slots:
 
 private:
     Ui::OpenRouteDialog *ui;
-
-    static const QMap<QString, QSerialPort::BaudRate> baud_map;
-    static const QMap<QString, QSerialPort::DataBits> data_bits_map;
-    static const QMap<QString, QSerialPort::Parity> parity_map;
-    static const QMap<QString, QSerialPort::StopBits> stop_bits_map;
-    static const QMap<QString, QSerialPort::FlowControl> flow_control_map;
-    static const QMap<QString, QList<QString> > protocol_map;
-    static const QMap<QString, Protocols> protocol_enum_map;
 
     QList<MyTcpServer*> m_listening_servers;
     QList<QPushButton*> m_modify_buttons;

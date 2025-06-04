@@ -5,40 +5,10 @@
 #include "modbuswidget.h"
 #include "EnumHeader.h"
 #include "ModbusBase.h"
+#include "mapdefines.h"
 #include <QMessageBox>
 #include <QtEndian>
 #include <QInputDialog>
-
-const QMap<QString, int> ModbusWriteMultipleRegistersDialog::format_map = {
-    {tr("Signed"), CellFormat::Format_Signed},
-    {tr("Unsigned"), CellFormat::Format_Unsigned},
-    {tr("Hex"), CellFormat::Format_Hex},
-    {tr("Binary"), CellFormat::Format_Binary},
-    {tr("Int32 Big-endian"), CellFormat::Format_32_Bit_Signed_Big_Endian},
-    {tr("Int32 Little-endian"), CellFormat::Format_32_Bit_Signed_Little_Endian},
-    {tr("Int32 Big-endian byte swap"), CellFormat::Format_32_Bit_Signed_Big_Endian_Byte_Swap},
-    {tr("Int32 Little-endian byte swap"), CellFormat::Format_32_Bit_Signed_Little_Endian_Byte_Swap},
-    {tr("UInt32 Big-endian"), CellFormat::Format_32_Bit_Unsigned_Big_Endian},
-    {tr("UInt32 Little-endian"), CellFormat::Format_32_Bit_Unsigned_Little_Endian},
-    {tr("UInt32 Big-endian byte swap"), CellFormat::Format_32_Bit_Unsigned_Big_Endian_Byte_Swap},
-    {tr("UInt32 Little-endian byte swap"), CellFormat::Format_32_Bit_Unsigned_Little_Endian_Byte_Swap},
-    {tr("Int64 Big-endian"), CellFormat::Format_64_Bit_Signed_Big_Endian},
-    {tr("Int64 Little-endian"), CellFormat::Format_64_Bit_Signed_Little_Endian},
-    {tr("Int64 Big-endian byte swap"), CellFormat::Format_64_Bit_Signed_Big_Endian_Byte_Swap},
-    {tr("Int64 Little-endian byte swap"), CellFormat::Format_64_Bit_Signed_Little_Endian_Byte_Swap},
-    {tr("UInt64 Big-endian"), CellFormat::Format_64_Bit_Unsigned_Big_Endian},
-    {tr("UInt64 Little-endian"), CellFormat::Format_64_Bit_Unsigned_Little_Endian},
-    {tr("UInt64 Big-endian byte swap"), CellFormat::Format_64_Bit_Unsigned_Big_Endian_Byte_Swap},
-    {tr("UInt64 Little-endian byte swap"), CellFormat::Format_64_Bit_Unsigned_Little_Endian_Byte_Swap},
-    {tr("Float Big-endian"), CellFormat::Format_32_Bit_Float_Big_Endian},
-    {tr("Float Little-endian"), CellFormat::Format_32_Bit_Float_Little_Endian},
-    {tr("Float Big-endian byte swap"), CellFormat::Format_32_Bit_Float_Big_Endian_Byte_Swap},
-    {tr("Float Little-endian byte swap"), CellFormat::Format_32_Bit_Float_Little_Endian_Byte_Swap},
-    {tr("Double Big-endian"), CellFormat::Format_64_Bit_Float_Big_Endian},
-    {tr("Double Little-endian"), CellFormat::Format_64_Bit_Float_Little_Endian},
-    {tr("Double Big-endian byte swap"), CellFormat::Format_64_Bit_Float_Big_Endian_Byte_Swap},
-    {tr("Double Little-endian byte swap"), CellFormat::Format_64_Bit_Float_Little_Endian_Byte_Swap}
-};
 
 ModbusWriteMultipleRegistersDialog::ModbusWriteMultipleRegistersDialog(ModbusBase *modbus, QWidget *parent)
     : QDialog(parent)
@@ -49,7 +19,7 @@ ModbusWriteMultipleRegistersDialog::ModbusWriteMultipleRegistersDialog(ModbusBas
     setWindowTitle(tr("16:Write Multiple Registers"));
     m_format = CellFormat::Format_Signed;
     m_reg_values = new quint16[1]{0};
-    ui->box_type->addItems(format_map.keys());
+    ui->box_type->addItems(MapDefine.format_map.keys());
     ui->box_type->setCurrentIndex(0);
 
 }
@@ -76,9 +46,18 @@ void ModbusWriteMultipleRegistersDialog::responseSlot(int error_code)
     }
     else
     {
-        tip_string = ModbusWidget::modbus_error_code_map[(ModbusErrorCode)error_code];
+        tip_string = MapDefine.modbus_error_code_map[(ModbusErrorCode)error_code];
     }
     QMessageBox::warning(this, "Modbus", tip_string);
+}
+
+void ModbusWriteMultipleRegistersDialog::changeEvent(QEvent *event)
+{
+    if(event->type() == QEvent::LanguageChange)
+    {
+        ui->retranslateUi(this);
+    }
+    QWidget::changeEvent(event);
 }
 
 void ModbusWriteMultipleRegistersDialog::on_box_quantity_valueChanged(int arg1)
@@ -103,7 +82,7 @@ void ModbusWriteMultipleRegistersDialog::on_button_update_value_list_clicked()
 
 void ModbusWriteMultipleRegistersDialog::on_box_type_currentTextChanged(const QString &arg1)
 {
-    m_format = format_map[arg1];
+    m_format = MapDefine.format_map[arg1];
     update_value_list();
 }
 

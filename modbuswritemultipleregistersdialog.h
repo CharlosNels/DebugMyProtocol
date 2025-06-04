@@ -22,6 +22,9 @@ signals:
 public slots:
     void responseSlot(int error_code);
 
+protected:
+    void changeEvent(QEvent *event) override;
+
 private slots:
     void on_box_quantity_valueChanged(int arg1);
 
@@ -42,7 +45,6 @@ private:
 
 private:
     Ui::ModbusWriteMultipleRegistersDialog *ui;
-    static const QMap<QString, int> format_map;
     ModbusBase *m_modbus;
     int m_format;
     quint16 *m_reg_values;
