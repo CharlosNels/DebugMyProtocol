@@ -1,5 +1,6 @@
 #include "testcenterwindow.h"
 #include "ui_testcenterwindow.h"
+#include "utils.h"
 #include <QIODevice>
 #include <QRegularExpressionValidator>
 #include <QMessageBox>
@@ -33,6 +34,10 @@ void TestCenterWindow::closeEvent(QCloseEvent *event)
 
 void TestCenterWindow::showEvent(QShowEvent *event)
 {
+    if(isVisible())
+    {
+        return;
+    }
     connect(m_com, &QIODevice::readyRead, this, &TestCenterWindow::comReadyReadSlot);
     m_packet_id = 0;
 }
@@ -68,6 +73,20 @@ void TestCenterWindow::on_button_send_clicked()
         return;
     }
     QByteArray hex_pack = QByteArray::fromHex(pack_str.remove(seperator).toLatin1());
+    if(ui->check_box_add_check->isChecked())
+    {
+        if(ui->radio_button_crc->isChecked())
+        {
+            quint16 crc_val = CRC_16(hex_pack, hex_pack.size());
+            hex_pack.append(crc_val & 0xFF);
+            hex_pack.append(crc_val >> 8 & 0xFF);
+        }
+        else
+        {
+            quint8 lrc_val = LRC(hex_pack, hex_pack.size());
+            hex_pack.append(lrc_val);
+        }
+    }
     m_com->write(hex_pack);
     ui->text_edit_traffic->appendPlainText(QString("%1-Tx : %2\n").arg(m_packet_id++, 3, 10, QChar(u'0')).arg(QString(hex_pack.toHex(' ').toUpper())));
 }
