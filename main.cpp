@@ -51,8 +51,8 @@ QTranslator translator;
 
 int main(int argc, char *argv[])
 {
-    qInstallMessageHandler(myMessageHandle);
     createProgDirs();
+    qInstallMessageHandler(myMessageHandle);
     QApplication a(argc, argv);
     QFile trans_setting_file("./Config/translate_setting");
     if(trans_setting_file.open(QIODevice::ReadOnly))
